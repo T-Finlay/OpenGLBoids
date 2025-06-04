@@ -7,6 +7,25 @@
 #include <GLM/gtc/matrix_transform.hpp>
 #include <GLM/gtc/type_ptr.hpp>
 #include <string>
+#include <iostream>
+
+float axisLines[] = {
+	//x axis
+	0.f,0.f,0.f,
+	5.f,0.f,0.f,
+
+	//y axis
+	0.f,0.f,0.f,
+	0.f,5.f,0.f,
+
+	//z axis
+	0.f,0.f,0.f,
+	0.f,0.f,5.f
+};
+
+glm::vec3 red = glm::vec3(1.f, 0.f, 0.f);
+glm::vec3 green = glm::vec3(0.f, 1.f, 0.f);
+glm::vec3 blue = glm::vec3(0.f, 0.f, 1.f);
 
 unsigned int Renderer::compileShader(char* vertexShaderName, char* fragmentShaderName) {
 	//setup the shader
@@ -43,8 +62,8 @@ unsigned int Renderer::compileShader(char* vertexShaderName, char* fragmentShade
 		fprintf(stderr, "Shader Program Link Fail - %s\n", infoLog);
 	}
 
-	free(vertexSource);
-	free(fragmentSource);
+	delete vertexSource;
+	delete fragmentSource;
 
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
@@ -52,49 +71,91 @@ unsigned int Renderer::compileShader(char* vertexShaderName, char* fragmentShade
 	return program;
 }
 
-void Renderer::initialise(float* geometry, int geometrySize, unsigned int* indicies, int indiciesSize)
+void Renderer::initialise(float* geometry, int geometrySize)
 {
+	currentTex = new Texture("test_texture.png");
+
 	glEnable(GL_DEBUG_OUTPUT);
 	glDebugMessageCallback(Renderer::DebugCallBack, 0);
 
-	this->shaderProgram = this->compileShader("basic.vert", "basic.frag");
+	shaderProgram = compileShader("basic.vert", "basic.frag");
+	linesProgram = compileShader("lines.vert", "lines.frag");
 	glUseProgram(shaderProgram);
 
 	//setup buffers
 	glGenVertexArrays(NUM_VAOS, VAOs);
 	glCreateBuffers(NUM_BUFFERS, Buffers);
-	glCreateBuffers(NUM_EBOS, EBOs);
 
 	glBindVertexArray(VAOs[0]);
 	glBindBuffer(GL_ARRAY_BUFFER, Buffers[0]);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[0]);
 
 	glNamedBufferStorage(Buffers[0], geometrySize, geometry,0);
-	glNamedBufferStorage(EBOs[0], indiciesSize, indicies, 0);
 
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*) (3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+
+	glEnable(GL_DEPTH_TEST);
+
+	glBindVertexArray(VAOs[1]);
+	glBindBuffer(GL_ARRAY_BUFFER, Buffers[1]);
+
+	glNamedBufferStorage(Buffers[1], sizeof(axisLines), axisLines, 0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
+
+	glEnable(GL_DEPTH_TEST);
+
+	cam.reset(new Camera(glm::vec3(0.f, 0.f, 10.f), glm::vec3(0.f, 0.f, -1.f), glm::vec3(0.f, 1.f, 0.f), glm::vec3(0.f, 0.f, 0.f)));
 }
 
-void Renderer::drawFrame()
+void Renderer::drawFrame(float deltaTimeMs)
 {
+	glDepthFunc(GL_LESS);
+	//std::cout << "drawing " << deltaTimeMs << std::endl;
+	cam->update(deltaTimeMs);
+	glUseProgram(shaderProgram);
+
 	glm::mat4 model, view, projection;
 	model = glm::mat4(1.f);
 	model = glm::translate(model,glm::vec3(0.f,0.f,0.f));
 
 	view = glm::mat4(1.f);
-	view = glm::lookAt(glm::vec3(0.f,0.f,-10.f), glm::vec3(0.f,0.f,1.f), glm::vec3(0.f, 1.f, 0.f));
+	view = glm::lookAt(cam->position,cam->position + cam->forward,cam->up);
 	projection = glm::mat4(1.f);
 	projection = glm::perspective(glm::radians(45.f), (float)width / (float)height, .01f, 500.f);
 
 	static const GLfloat bgd[] = { 1.f, 1.f, 1.f, 1.f };
 	glClearBufferfv(GL_COLOR, 0, bgd);
+	glClear(GL_DEPTH_BUFFER_BIT);
 	glBindVertexArray(VAOs[0]);
 	glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"),1,GL_FALSE,glm::value_ptr(model));
 	glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
 	glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+	currentTex->bind();
 
-	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+	//for test cube
+	glDrawArrays(GL_TRIANGLES,0,36);
+
+	glUseProgram(linesProgram);
+	
+	glDepthFunc(GL_ALWAYS);
+	glBindVertexArray(VAOs[1]);
+	model = glm::mat4(1.f);
+	model = glm::translate(model, glm::vec3(0.f, 0.f, 0.f));
+	glUniformMatrix4fv(glGetUniformLocation(linesProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
+	glUniformMatrix4fv(glGetUniformLocation(linesProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
+	glUniformMatrix4fv(glGetUniformLocation(linesProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+	glUniform3fv(glGetUniformLocation(linesProgram, "lColour"),1,glm::value_ptr(red));
+	glDrawArrays(GL_LINE_STRIP, 0, 2);
+
+	glUniform3fv(glGetUniformLocation(linesProgram, "lColour"), 1, glm::value_ptr(green));
+	glDrawArrays(GL_LINE_STRIP, 2, 2);
+
+	glUniform3fv(glGetUniformLocation(linesProgram, "lColour"), 1, glm::value_ptr(blue));
+	glDrawArrays(GL_LINE_STRIP, 4, 2);
 }
 
 Renderer::Renderer(int w, int h) {
@@ -116,7 +177,7 @@ char* Renderer::readFile(const char* filename) {
 	fseek(f, 0, SEEK_END);
 	long size = ftell(f);
 	rewind(f);
-	char* bfr = (char*)malloc(sizeof(char) * (size + 1));
+	char* bfr = new char[size + 1];
 	if (bfr == NULL)
 		return NULL;
 	long ret = fread(bfr, 1, size, f);
