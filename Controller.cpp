@@ -1,7 +1,7 @@
 #include "Controller.h"
-#include <iostream>
 GLFWwindow* Controller::window = nullptr;
 Controller* Controller::singleton = nullptr;
+std::map<int, int> Controller::keystates;
 
 Controller::Controller() {
 
@@ -20,6 +20,14 @@ void Controller::setWindow(GLFWwindow* w) {
 
 bool Controller::pollKeyDown(int key) {
 	return glfwGetKey(window,key) == GLFW_PRESS;
+}
+
+int Controller::pollKeyState(int key) {
+	return keystates[key];
+}
+
+void Controller::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	keystates[key] = action;
 }
 
 glm::vec2 Controller::pollMouseDeltas() {

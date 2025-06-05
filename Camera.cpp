@@ -83,7 +83,7 @@ void Camera::update(float deltaTime) {
 	if (controllerRef->pollKeyDown(GLFW_KEY_SPACE)) {
 		strafes.y += 1.f;
 	}
-	if (controllerRef->pollKeyDown(GLFW_KEY_N)) {
+	if (controllerRef->pollKeyState(GLFW_KEY_N) == GLFW_PRESS) {
 		toggleMode();
 	}
 	glm::vec2 mouseData = controllerRef->pollMouseDeltas();

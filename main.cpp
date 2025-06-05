@@ -83,6 +83,7 @@ int main()
 	gl3wInit();
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSetCursorPos(window, 0.0, 0.0);
+	glfwSetKeyCallback(window,Controller::key_callback);
 	Renderer renderer(WIDTH,HEIGHT);
 	renderer.initialise(cube,sizeof(cube));
 
