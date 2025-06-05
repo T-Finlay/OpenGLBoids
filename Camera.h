@@ -37,6 +37,8 @@ private:
 	void panFreeCam(float, float);
 	void strafeModelCam(float, float);
 	void strafeFreeCam(float, float, float, float);
+	void rotateCamera(float, float);
 	void recalculateModelViewPosition();
+	void recalculateFreeCamDirections();
 };
 

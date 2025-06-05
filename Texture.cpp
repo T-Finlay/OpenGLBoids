@@ -36,10 +36,10 @@ Texture::Texture(char* name)
 
 	std::cout << "texture created from " << name << " with ID " << texObject << std::endl;
 
-	this->glTextureNumber = texObject;
+	glTextureNumber = texObject;
 }
 
 void Texture::bind()
 {
-	glBindTexture(GL_TEXTURE_2D,this->glTextureNumber);
+	glBindTexture(GL_TEXTURE_2D,glTextureNumber);
 }

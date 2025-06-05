@@ -71,8 +71,7 @@ unsigned int Renderer::compileShader(char* vertexShaderName, char* fragmentShade
 	return program;
 }
 
-void Renderer::initialise(float* geometry, int geometrySize)
-{
+void Renderer::initialise(float* geometry, int geometrySize) {
 	currentTex = new Texture("test_texture.png");
 
 	glEnable(GL_DEBUG_OUTPUT);
@@ -110,10 +109,8 @@ void Renderer::initialise(float* geometry, int geometrySize)
 	cam.reset(new Camera(glm::vec3(0.f, 0.f, 10.f), glm::vec3(0.f, 0.f, -1.f), glm::vec3(0.f, 1.f, 0.f), glm::vec3(0.f, 0.f, 0.f)));
 }
 
-void Renderer::drawFrame(float deltaTimeMs)
-{
+void Renderer::drawFrame(float deltaTimeMs) {
 	glDepthFunc(GL_LESS);
-	//std::cout << "drawing " << deltaTimeMs << std::endl;
 	cam->update(deltaTimeMs);
 	glUseProgram(shaderProgram);
 

@@ -1,6 +1,5 @@
 #include "Controller.h"
 #include <iostream>
-#include <iomanip>
 GLFWwindow* Controller::window = nullptr;
 Controller* Controller::singleton = nullptr;
 

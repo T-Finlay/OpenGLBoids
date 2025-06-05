@@ -6,6 +6,8 @@
 #include "Renderer.h"
 #include "Controller.h"
 #include <chrono>
+#include <iomanip>
+
 
 const int WIDTH = 1280;
 const int HEIGHT = 720;
@@ -70,9 +72,12 @@ float cube [] =
 
 int main()
 {
-	auto currentTime = std::chrono::system_clock::now();
+	std::string title = "Boids Project";
+	auto currentTime = std::chrono::high_resolution_clock::now();
+	auto lastFPSUpdate = currentTime;
 	glfwInit();
-	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Hello OpenGL", NULL, NULL);
+	glfwWindowHint(GLFW_SAMPLES,4);
+	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, title.c_str(), NULL, NULL);
 	Controller::setWindow(window);
 	glfwMakeContextCurrent(window);
 	gl3wInit();
@@ -82,12 +87,18 @@ int main()
 	renderer.initialise(cube,sizeof(cube));
 
 	while (!glfwWindowShouldClose(window)) {
-		auto newTime = std::chrono::system_clock::now();
-		auto deltaTime = newTime - currentTime;
+		auto newTime = std::chrono::high_resolution_clock::now();
+		auto deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(newTime - currentTime).count();
 		currentTime = newTime;
-		renderer.drawFrame(std::chrono::duration_cast<std::chrono::milliseconds>(deltaTime).count());
+		renderer.drawFrame((float)deltaTime / 1000.f);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
+
+		if (std::chrono::duration_cast<std::chrono::seconds>(currentTime - lastFPSUpdate).count() > 1) {
+			title = ("Boids Project - FPS:  " + std::to_string((int) ((float)(1.f / (float)deltaTime) * 1000000.f)));
+			glfwSetWindowTitle(window, title.c_str());
+			lastFPSUpdate = currentTime;
+		}
 
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 			glfwSetWindowShouldClose(window, true);

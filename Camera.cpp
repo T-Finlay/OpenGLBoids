@@ -10,8 +10,8 @@ Camera::Camera(glm::vec3 pos, glm::vec3 front, glm::vec3 u, glm::vec3 t) {
 	up = u;
 	target = t;
 	worldUp = glm::vec3(0.f,1.f,0.f);
-	speed = .1f;
-	mouse_sensitivity = 0.5f;
+	speed = .02f;
+	mouse_sensitivity = 0.2f;
 	dist_from_target = 10.f;
 	pitch = 0.f;
 	yaw = 90.f;
@@ -19,16 +19,30 @@ Camera::Camera(glm::vec3 pos, glm::vec3 front, glm::vec3 u, glm::vec3 t) {
 }
 
 void Camera::toggleMode() {
-	//TODO:
+	pitch *= -1;
+	yaw = fmodf(yaw + 180.f, 360.f);
+	switch (mode) {
+	case TARGET_VIEW:
+		mode = FREECAM;
+		//setCursorPos
+		recalculateFreeCamDirections();
+		break;
+	case FREECAM:
+		dist_from_target = glm::length(target - position);
+		mode = TARGET_VIEW;
+		recalculateModelViewPosition();
+		break;
+	}
 }
 
 void Camera::pan(float pitchDelta, float yawDelta) {
-	//std::cout << "panning: y = " << pitchDelta << " x = " << yawDelta << std::endl;
 	switch (mode) {
 	case TARGET_VIEW:
 		panModelCam(pitchDelta, yawDelta);
+		break;
 	case FREECAM:
-		panFreeCam(pitchDelta, yawDelta);
+		panFreeCam(-pitchDelta, yawDelta);
+		break;
 	default:
 		break;
 	}
@@ -38,27 +52,26 @@ void Camera::strafe(float xDelta, float yDelta, float zDelta,float deltaTime) {
 	switch (mode) {
 	case TARGET_VIEW:
 		strafeModelCam(zDelta,deltaTime);
+		break;
 	case FREECAM:
-		strafeFreeCam(xDelta,yDelta,zDelta,deltaTime);
+		strafeFreeCam(xDelta,yDelta,-zDelta,deltaTime);
+		break;
 	default:
 		break;
 	}
 }
 
 void Camera::update(float deltaTime) {
+	std::cout << "cam at " << position.x << " " << position.y << " " << position.z << std::endl;
 	Controller* controllerRef = Controller::getController();
-
 	glm::vec3 strafes = glm::vec3(0.f, 0.f, 0.f);
-
 	if (controllerRef->pollKeyDown(GLFW_KEY_W)) {
-		std::cout << "W down" << std::endl;
 		strafes.z -= 1.f;
 	}
 	if (controllerRef->pollKeyDown(GLFW_KEY_A)) {
 		strafes.x -= 1.f;
 	}
 	if (controllerRef->pollKeyDown(GLFW_KEY_S)) {
-
 		strafes.z += 1.f;
 	}
 	if (controllerRef->pollKeyDown(GLFW_KEY_D)) {
@@ -70,14 +83,44 @@ void Camera::update(float deltaTime) {
 	if (controllerRef->pollKeyDown(GLFW_KEY_SPACE)) {
 		strafes.y += 1.f;
 	}
-
+	if (controllerRef->pollKeyDown(GLFW_KEY_N)) {
+		toggleMode();
+	}
 	glm::vec2 mouseData = controllerRef->pollMouseDeltas();
-
 	pan(mouseData.y,mouseData.x);
 	strafe(strafes.x,strafes.y,strafes.z,deltaTime);
 }
 
 void Camera::panModelCam(float pitchDelta, float yawDelta) {
+	rotateCamera(pitchDelta, yawDelta);
+	recalculateModelViewPosition();
+
+	forward = glm::normalize(target - position);
+	right = glm::normalize(glm::cross(forward, worldUp));
+	up = glm::normalize(glm::cross(right, forward));
+}
+
+void Camera::panFreeCam(float pitchDelta, float yawDelta) {
+	rotateCamera(pitchDelta, yawDelta);
+	recalculateFreeCamDirections();
+}
+
+void Camera::strafeModelCam(float zDelta,float deltaTime) {
+	dist_from_target += zDelta * speed * deltaTime;
+	if (dist_from_target < 1.f) {
+		dist_from_target = 1.f;
+	}
+	recalculateModelViewPosition();
+	forward = glm::normalize(target - position);
+	right = glm::normalize(glm::cross(forward, worldUp));
+	up = glm::normalize(glm::cross(right, forward));
+}
+
+void Camera::strafeFreeCam(float xDelta, float yDelta, float zDelta, float deltaTime) {
+	position += ((right * xDelta) + (up * yDelta) + (forward * zDelta)) * speed * deltaTime;
+}
+
+void Camera::rotateCamera(float pitchDelta, float yawDelta){
 	yaw -= yawDelta * mouse_sensitivity;
 	pitch -= pitchDelta * mouse_sensitivity;
 	yaw = fmodf(yaw, 360.f);
@@ -92,30 +135,19 @@ void Camera::panModelCam(float pitchDelta, float yawDelta) {
 	if (pitch < -89.0f) {
 		pitch = -89.0f;
 	}
-	
-	recalculateModelViewPosition();
-
-	forward = glm::normalize(target - position);
-	right = glm::normalize(glm::cross(forward, worldUp));
-	up = glm::normalize(glm::cross(right, forward));
-}
-
-void Camera::panFreeCam(float, float)
-{
-}
-
-void Camera::strafeModelCam(float zDelta,float deltaTime) {
-	dist_from_target += zDelta * speed * deltaTime;
-	recalculateModelViewPosition();
-}
-
-void Camera::strafeFreeCam(float, float, float, float)
-{
 }
 
 void Camera::recalculateModelViewPosition() {
 	float theta = glm::radians(yaw);
 	float alpha = glm::radians(pitch);
-	position = glm::vec3(cosf(theta) * cosf(alpha), sinf(alpha), sinf(theta) * cosf(alpha));
-	position = position * dist_from_target;
+	position = glm::vec3(cosf(theta) * cosf(alpha), sinf(alpha), sinf(theta) * cosf(alpha)) * dist_from_target;
+}
+
+void Camera::recalculateFreeCamDirections() {
+	float theta = glm::radians(yaw);
+	float alpha = glm::radians(pitch);
+
+	forward = glm::vec3(cosf(theta) * cosf(alpha), sinf(alpha), sinf(theta) * cosf(alpha));
+	right = glm::normalize(glm::cross(forward, worldUp));
+	up = glm::normalize(glm::cross(right, forward));
 }
