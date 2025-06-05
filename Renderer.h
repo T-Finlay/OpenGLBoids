@@ -3,16 +3,15 @@
 #include <GLFW/glfw3.h>
 #include "Texture.h"
 #include "Camera.h"
+#include "Shader.h"
 #include <memory>
 #define NUM_BUFFERS 2
 #define NUM_VAOS 2
 class Renderer
 {
 public:
-	unsigned int shaderProgram;
 	GLuint Buffers[NUM_BUFFERS];
 	GLuint VAOs[NUM_VAOS];
-	unsigned int compileShader(char*,char*);
 	void initialise(float*,int);
 	void drawFrame(float);
 	Renderer(int,int);
@@ -21,8 +20,8 @@ public:
 		GLuint, GLenum, GLsizei, const GLchar*, const void*);
 
 private:
-	unsigned int linesProgram;
-	char* readFile(const char*);
+	std::unique_ptr<Shader> mainShader;
+	std::unique_ptr<Shader> linesShader;
 	Texture* currentTex;
 	std::unique_ptr<Camera> cam;
 };
