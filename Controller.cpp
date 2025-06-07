@@ -20,10 +20,15 @@ void Controller::setWindow(GLFWwindow* w) {
 
 bool Controller::pollKeyDown(int key) {
 	return glfwGetKey(window,key) == GLFW_PRESS;
+	
 }
 
 int Controller::pollKeyState(int key) {
-	return keystates[key];
+	int state = keystates[key];
+	if (state == GLFW_PRESS) {
+		keystates[key] = GLFW_REPEAT;
+	}
+	return state;
 }
 
 void Controller::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {

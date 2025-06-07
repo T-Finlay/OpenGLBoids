@@ -62,7 +62,6 @@ void Camera::strafe(float xDelta, float yDelta, float zDelta,float deltaTime) {
 }
 
 void Camera::update(float deltaTime) {
-	std::cout << "cam at " << position.x << " " << position.y << " " << position.z << std::endl;
 	Controller* controllerRef = Controller::getController();
 	glm::vec3 strafes = glm::vec3(0.f, 0.f, 0.f);
 	if (controllerRef->pollKeyDown(GLFW_KEY_W)) {
@@ -117,7 +116,7 @@ void Camera::strafeModelCam(float zDelta,float deltaTime) {
 }
 
 void Camera::strafeFreeCam(float xDelta, float yDelta, float zDelta, float deltaTime) {
-	position += ((right * xDelta) + (up * yDelta) + (forward * zDelta)) * speed * deltaTime;
+	position += ((right * xDelta) + (worldUp * yDelta) + (forward * zDelta)) * speed * deltaTime;
 }
 
 void Camera::rotateCamera(float pitchDelta, float yawDelta){
