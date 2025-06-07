@@ -20,7 +20,6 @@ void Controller::setWindow(GLFWwindow* w) {
 
 bool Controller::pollKeyDown(int key) {
 	return glfwGetKey(window,key) == GLFW_PRESS;
-	
 }
 
 int Controller::pollKeyState(int key) {

@@ -1,5 +1,6 @@
 #pragma once
 #include <GLM/glm.hpp>
+#include <GLM/gtc/matrix_transform.hpp>
 #include "Transform.h"
 enum CameraMode
 {
@@ -22,8 +23,12 @@ public:
 	float pitch;
 	float yaw;
 	CameraMode mode;
+	glm::mat4 viewMatrix;
+	glm::mat4 projectionMatrix;
+	int windowWidth;
+	int windowHeight;
 
-	Camera(glm::vec3,glm::vec3,glm::vec3,glm::vec3);
+	Camera(glm::vec3,glm::vec3,glm::vec3,glm::vec3,int,int);
 	void toggleMode();
 	void pan(float,float);
 	void strafe(float,float,float,float);
@@ -40,5 +45,6 @@ private:
 	void rotateCamera(float, float);
 	void recalculateModelViewPosition();
 	void recalculateFreeCamDirections();
+	void updateViewAndProjectionMatricies();
 };
 

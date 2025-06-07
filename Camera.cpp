@@ -2,7 +2,7 @@
 #include "Controller.h"
 #include <iostream>
 
-Camera::Camera(glm::vec3 pos, glm::vec3 front, glm::vec3 u, glm::vec3 t) {
+Camera::Camera(glm::vec3 pos, glm::vec3 front, glm::vec3 u, glm::vec3 t,int width,int height) {
 	std::cout << "creating camera object" << std::endl;
 	position = pos;
 	forward = front;
@@ -16,6 +16,9 @@ Camera::Camera(glm::vec3 pos, glm::vec3 front, glm::vec3 u, glm::vec3 t) {
 	pitch = 0.f;
 	yaw = 90.f;
 	mode = TARGET_VIEW;
+	windowWidth = width;
+	windowHeight = height;
+	updateViewAndProjectionMatricies();
 }
 
 void Camera::toggleMode() {
@@ -88,6 +91,7 @@ void Camera::update(float deltaTime) {
 	glm::vec2 mouseData = controllerRef->pollMouseDeltas();
 	pan(mouseData.y,mouseData.x);
 	strafe(strafes.x,strafes.y,strafes.z,deltaTime);
+	updateViewAndProjectionMatricies();
 }
 
 void Camera::panModelCam(float pitchDelta, float yawDelta) {
@@ -149,4 +153,11 @@ void Camera::recalculateFreeCamDirections() {
 	forward = glm::vec3(cosf(theta) * cosf(alpha), sinf(alpha), sinf(theta) * cosf(alpha));
 	right = glm::normalize(glm::cross(forward, worldUp));
 	up = glm::normalize(glm::cross(right, forward));
+}
+
+void Camera::updateViewAndProjectionMatricies() {
+	viewMatrix = glm::mat4(1.f);
+	viewMatrix = glm::lookAt(position, position + forward,up);
+	projectionMatrix = glm::mat4(1.f);
+	projectionMatrix = glm::perspective(glm::radians(45.f), (float)windowWidth / (float)windowHeight, .01f, 500.f);
 }
