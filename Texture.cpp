@@ -6,7 +6,7 @@
 #include <string>
 #include <iostream>
 
-Texture::Texture(char* name)
+Texture::Texture(const char* name)
 {
 	std::string path = "textures/" + std::string(name);
 	glEnable(GL_TEXTURE_2D);

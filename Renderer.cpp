@@ -28,8 +28,6 @@ glm::vec3 green = glm::vec3(0.f, 1.f, 0.f);
 glm::vec3 blue = glm::vec3(0.f, 0.f, 1.f);
 
 void Renderer::initialise(float* geometry, int geometrySize) {
-	currentTex = new Texture("test_texture.png");
-
 	glEnable(GL_DEBUG_OUTPUT);
 	glDebugMessageCallback(Renderer::DebugCallBack, 0);
 
@@ -54,6 +52,7 @@ void Renderer::drawFrame(float deltaTimeMs) {
 	glClearBufferfv(GL_COLOR, 0, bgd);
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
 	mainShader->useShader();
 	drawEntity(testCube.get());
 	linesShader->useShader();
@@ -83,7 +82,7 @@ glm::mat4 Renderer::generateModelMatrix(Entity* e) {
 
 void Renderer::initTestCube() {
 	testCube.reset(
-		new Entity(0, 36, VAOs[0], currentTex,
+		new Entity(0, 36, VAOs[0], "test_texture.png",
 			glm::vec3(0.f, 0.f, 0.f),
 			glm::vec3(0.f, 0.f, 0.f),
 			glm::vec3(1.f, 1.f, 1.f)

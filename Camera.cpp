@@ -27,7 +27,6 @@ void Camera::toggleMode() {
 	switch (mode) {
 	case TARGET_VIEW:
 		mode = FREECAM;
-		//setCursorPos
 		recalculateFreeCamDirections();
 		break;
 	case FREECAM:

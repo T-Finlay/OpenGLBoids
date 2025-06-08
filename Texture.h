@@ -3,6 +3,6 @@ class Texture
 {
 public:
 	unsigned int glTextureNumber;
-	Texture(char*);
+	Texture(const char*);
 	void bind();
 };

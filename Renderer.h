@@ -24,7 +24,6 @@ public:
 private:
 	std::unique_ptr<Shader> mainShader;
 	std::unique_ptr<Shader> linesShader;
-	Texture* currentTex;
 	std::unique_ptr<Camera> cam;
 	glm::mat4 generateModelMatrix(Entity*);
 	std::unique_ptr<Entity> testCube;

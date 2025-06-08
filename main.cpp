@@ -86,11 +86,13 @@ int main()
 	glfwSetKeyCallback(window,Controller::key_callback);
 	Renderer renderer(WIDTH,HEIGHT);
 	renderer.initialise(cube,sizeof(cube));
+	
 
 	while (!glfwWindowShouldClose(window)) {
 		auto newTime = std::chrono::high_resolution_clock::now();
 		auto deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(newTime - currentTime).count();
 		currentTime = newTime;
+
 		renderer.drawFrame((float)deltaTime / 1000.f);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
