@@ -1,4 +1,5 @@
 #include "Renderer.h"
+#include "EntityManager.h"
 #include "stdio.h"
 #include <stdlib.h>
 #include <GL/gl3w.h>
@@ -54,7 +55,8 @@ void Renderer::drawFrame(float deltaTimeMs) {
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	mainShader->useShader();
-	drawEntity(testCube.get());
+	drawAllEntities();
+	//drawEntity(testCube.get());
 	linesShader->useShader();
 	drawAxisLines();
 }
@@ -62,6 +64,9 @@ void Renderer::drawFrame(float deltaTimeMs) {
 Renderer::Renderer(int w, int h) {
 	width = w;
 	height = h;
+	
+	//maybe move this in the future:
+	entityManager = std::make_shared<EntityManager>(*(new EntityManager()));
 }
 
 void Renderer::DebugCallBack(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
@@ -81,6 +86,15 @@ glm::mat4 Renderer::generateModelMatrix(Entity* e) {
 }
 
 void Renderer::initTestCube() {
+	Entity* tc = new Entity(0, 36, VAOs[0], "test_texture.png",
+		glm::vec3(0.f, 0.f, 0.f),
+		glm::vec3(0.f, 0.f, 0.f),
+		glm::vec3(1.f, 1.f, 1.f)
+	);
+
+	entityManager->addEntity(tc);
+
+	/*
 	testCube.reset(
 		new Entity(0, 36, VAOs[0], "test_texture.png",
 			glm::vec3(0.f, 0.f, 0.f),
@@ -88,6 +102,7 @@ void Renderer::initTestCube() {
 			glm::vec3(1.f, 1.f, 1.f)
 		)
 	);
+	*/
 }
 
 void Renderer::drawAxisLines() {
@@ -132,6 +147,16 @@ void Renderer::setupBuffers(float* geometry,int geometrySize) {
 	glNamedBufferStorage(Buffers[1], sizeof(axisLines), axisLines, 0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
+}
+
+void Renderer::drawAllEntities() {
+	EntityIterator current = entityManager->getBegin();
+	EntityIterator end = entityManager->getEnd();
+
+	while (current != end) {
+		drawEntity(current->get());
+		current++;
+	}
 }
 
 void Renderer::drawEntity(Entity* e) {

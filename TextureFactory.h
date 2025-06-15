@@ -14,5 +14,6 @@ private:
 public: 
 	static TextureFactory* getTextureFactory();
 	std::shared_ptr<Texture> registerTexture(std::string);
+	static void cleanup();
 };
 

@@ -5,7 +5,7 @@
 #include <string>
 #include "Renderer.h"
 #include "Controller.h"
-#include <chrono>
+#include "TextureFactory.h"
 #include <iomanip>
 
 
@@ -73,8 +73,9 @@ float cube [] =
 int main()
 {
 	std::string title = "Boids Project";
-	auto currentTime = std::chrono::high_resolution_clock::now();
-	auto lastFPSUpdate = currentTime;
+	double currentTime = glfwGetTime();
+	double lastFPSUpdate = currentTime;
+	int nbFrames = 0;
 	glfwInit();
 	glfwWindowHint(GLFW_SAMPLES,4);
 	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, title.c_str(), NULL, NULL);
@@ -83,30 +84,37 @@ int main()
 	gl3wInit();
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSetCursorPos(window, 0.0, 0.0);
+	glfwSwapInterval(0);
 	glfwSetKeyCallback(window,Controller::key_callback);
 	Renderer renderer(WIDTH,HEIGHT);
 	renderer.initialise(cube,sizeof(cube));
 	
 
 	while (!glfwWindowShouldClose(window)) {
-		auto newTime = std::chrono::high_resolution_clock::now();
-		auto deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(newTime - currentTime).count();
+		double newTime = glfwGetTime();
+		double deltaTime = newTime - currentTime;
 		currentTime = newTime;
 
-		renderer.drawFrame((float)deltaTime / 1000.f);
+		renderer.drawFrame((float)deltaTime * 1000);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
+		nbFrames++;
 
-		if (std::chrono::duration_cast<std::chrono::seconds>(currentTime - lastFPSUpdate).count() > 1) {
-			title = ("Boids Project - FPS:  " + std::to_string((int) ((float)(1.f / (float)deltaTime) * 1000000.f)));
+		if (currentTime - lastFPSUpdate > 1) {
+			title = ("Boids Project - FPS:  " + std::to_string(nbFrames));
 			glfwSetWindowTitle(window, title.c_str());
 			lastFPSUpdate = currentTime;
+			nbFrames = 0;
 		}
 
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 			glfwSetWindowShouldClose(window, true);
 		}
 	}
+
+	TextureFactory::cleanup();
+	Controller::cleanup();
+
 	glfwDestroyWindow(window);
 	glfwTerminate();
 }

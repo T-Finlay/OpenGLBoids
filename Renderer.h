@@ -5,6 +5,7 @@
 #include "Camera.h"
 #include "Shader.h"
 #include "Entity.h"
+#include "EntityManager.h"
 #include <memory>
 #define NUM_BUFFERS 2
 #define NUM_VAOS 2
@@ -22,6 +23,7 @@ public:
 	void drawEntity(Entity*);
 
 private:
+	std::shared_ptr<EntityManager> entityManager;
 	std::unique_ptr<Shader> mainShader;
 	std::unique_ptr<Shader> linesShader;
 	std::unique_ptr<Camera> cam;
@@ -30,5 +32,6 @@ private:
 	void initTestCube();
 	void drawAxisLines();
 	void setupBuffers(float*, int);
+	void drawAllEntities();
 };
 

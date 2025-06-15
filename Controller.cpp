@@ -40,3 +40,8 @@ glm::vec2 Controller::pollMouseDeltas() {
 	glfwSetCursorPos(window, 0.f, 0.f);
 	return glm::vec2(-cursorX, -cursorY);
 }
+
+void Controller::cleanup() {
+	window = nullptr;
+	delete singleton;
+}

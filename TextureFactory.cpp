@@ -18,3 +18,7 @@ std::shared_ptr<Texture> TextureFactory::registerTexture(std::string textureName
     textures[textureName] = tex;
     return tex;
 }
+
+void TextureFactory::cleanup() {
+    delete singleton;
+}
