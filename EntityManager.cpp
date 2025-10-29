@@ -1,4 +1,7 @@
 #include "EntityManager.h"
+#include <vector>
+#include <memory>
+#include <iterator>
 
 void EntityManager::addEntity(Entity* e) {
 	entities.push_back(std::make_shared<Entity>(*e));

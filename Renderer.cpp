@@ -28,7 +28,7 @@ glm::vec3 red = glm::vec3(1.f, 0.f, 0.f);
 glm::vec3 green = glm::vec3(0.f, 1.f, 0.f);
 glm::vec3 blue = glm::vec3(0.f, 0.f, 1.f);
 
-void Renderer::initialise(float* geometry, int geometrySize) {
+void Renderer::initialise(float* geometry, int geometrySize,unsigned int* indicies, int indiciesSize ) {
 	glEnable(GL_DEBUG_OUTPUT);
 	glDebugMessageCallback(Renderer::DebugCallBack, 0);
 
@@ -36,12 +36,12 @@ void Renderer::initialise(float* geometry, int geometrySize) {
 	linesShader.reset(new Shader("lines.vert", "lines.frag"));
 	mainShader->useShader();
 
-	setupBuffers(geometry, geometrySize);
+	setupBuffers(geometry, geometrySize,indicies,indiciesSize);
 
 	glEnable(GL_DEPTH_TEST);
 	
 	cam.reset(new Camera(glm::vec3(0.f, 0.f, 10.f), glm::vec3(0.f, 0.f, -1.f), glm::vec3(0.f, 1.f, 0.f), glm::vec3(0.f, 0.f, 0.f),width,height));
-	initTestCube();
+	initTestModel();
 }
 
 void Renderer::drawFrame(float deltaTimeMs) {
@@ -61,9 +61,10 @@ void Renderer::drawFrame(float deltaTimeMs) {
 	drawAxisLines();
 }
 
-Renderer::Renderer(int w, int h) {
+Renderer::Renderer(int w, int h, std::shared_ptr<GeometryLoader> l) {
 	width = w;
 	height = h;
+	loader = l;
 	
 	//maybe move this in the future:
 	entityManager = std::make_shared<EntityManager>(*(new EntityManager()));
@@ -85,24 +86,14 @@ glm::mat4 Renderer::generateModelMatrix(Entity* e) {
 	return modelMatrix;
 }
 
-void Renderer::initTestCube() {
-	Entity* tc = new Entity(0, 36, VAOs[0], "test_texture.png",
+void Renderer::initTestModel() {
+	ModelRenderData testData = loader->getModelRenderData("shark.obj");
+	Entity* testObj = new Entity(testData.firstIndexIndex, testData.numIndices,VAOs[0],"shark.jpg",
 		glm::vec3(0.f, 0.f, 0.f),
 		glm::vec3(0.f, 0.f, 0.f),
 		glm::vec3(1.f, 1.f, 1.f)
 	);
-
-	entityManager->addEntity(tc);
-
-	/*
-	testCube.reset(
-		new Entity(0, 36, VAOs[0], "test_texture.png",
-			glm::vec3(0.f, 0.f, 0.f),
-			glm::vec3(0.f, 0.f, 0.f),
-			glm::vec3(1.f, 1.f, 1.f)
-		)
-	);
-	*/
+	entityManager->addEntity(testObj);
 }
 
 void Renderer::drawAxisLines() {
@@ -125,18 +116,46 @@ void Renderer::drawAxisLines() {
 	glDrawArrays(GL_LINE_STRIP, 4, 2);
 }
 
-void Renderer::setupBuffers(float* geometry,int geometrySize) {
+void Renderer::setupBuffers(float* geometry,int geometrySize, unsigned int* indicies, int indiciesSize) {
 	glGenVertexArrays(NUM_VAOS, VAOs);
 	glCreateBuffers(NUM_BUFFERS, Buffers);
+	glCreateBuffers(NUM_EBOS, EBOs);
 
 	glBindVertexArray(VAOs[0]);
 	glBindBuffer(GL_ARRAY_BUFFER, Buffers[0]);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[0]);
 
-	glNamedBufferStorage(Buffers[0], geometrySize, geometry, 0);
+#ifdef OUTPUT_MESH_DATA
+	std::cout << "debug vertices" << std::endl;
+	int floatN = 0;
+	for (int vtxN = 0;vtxN < geometrySize / 8;vtxN++) {
+		float x = geometry[floatN++], y = geometry[floatN++], z = geometry[floatN++],
+			u = geometry[floatN++], v = geometry[floatN++], nx = geometry[floatN++],
+			ny = geometry[floatN++], nz = geometry[floatN++];
+		printf("v%d - x: %f, y: %f, z: %f, u: %f, v: %f, nx: %f, ny: %f, nz: %f\n", vtxN,x,y,z,u,v,nx,ny,nz);
+	}
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+	std::cout << "debug indicies" << std::endl;
+	int intN = 0;
+	for (int triN = 0;triN < indiciesSize / 3;triN++) {
+		unsigned int v1 = indicies[intN++], v2 = indicies[intN++], v3 = indicies[intN++];
+		printf("tri%d - v1:%u, v2:%u, v3:%u\n",triN, v1, v2, v3);
+	}
+#endif
+
+	glNamedBufferStorage(Buffers[0], geometrySize * sizeof(float), geometry, 0);
+	glNamedBufferStorage(EBOs[0], indiciesSize * sizeof(unsigned int), indicies, 0);
+
+	//x y z
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+
+	//u v
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+
+	//nX nY nZ
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
 	glEnableVertexAttribArray(1);
 
 	glEnable(GL_DEPTH_TEST);
@@ -172,5 +191,5 @@ void Renderer::drawEntity(Entity* e) {
 	glUniformMatrix4fv(linesShader->uniformLocation("projection"), 1, GL_FALSE, glm::value_ptr(cam->projectionMatrix));
 	e->texture->bind();
 
-	glDrawArrays(GL_TRIANGLES, e->firstVertixIndex, e->vertexCount);
+	glDrawElements(GL_TRIANGLES, (e->indexCount), GL_UNSIGNED_INT, (const void*)(e->firstIndexIndex));
 }

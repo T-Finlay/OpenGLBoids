@@ -126,6 +126,7 @@
     <ClCompile Include="Controller.cpp" />
     <ClCompile Include="Entity.cpp" />
     <ClCompile Include="EntityManager.cpp" />
+    <ClCompile Include="GeometryLoader.cpp" />
     <ClCompile Include="Includes\GL\gl3w.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Renderer.cpp" />
@@ -138,11 +139,13 @@
     <ClInclude Include="Controller.h" />
     <ClInclude Include="Entity.h" />
     <ClInclude Include="EntityManager.h" />
+    <ClInclude Include="GeometryLoader.h" />
     <ClInclude Include="Includes\stb_image.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TextureFactory.h" />
+    <ClInclude Include="tiny_obj_loader.h" />
     <ClInclude Include="Transform.h" />
   </ItemGroup>
   <ItemGroup>

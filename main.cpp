@@ -13,7 +13,7 @@ const int WIDTH = 1280;
 const int HEIGHT = 720;
 
 //x,y,z,u,v
-float cube [] =
+float cubeOld [] =
 {
 	//back face
 	-1.f,-1.f,-1.f,1.f,0.f, 
@@ -73,6 +73,13 @@ float cube [] =
 int main()
 {
 	std::string title = "Boids Project";
+	std::shared_ptr<GeometryLoader> loader(new GeometryLoader());
+	loader->loadObjFile("shark.obj");
+	int geometrySize = loader->getNumVertexFloats();
+	int indicesSize = loader->getNumIndices();
+	std::unique_ptr<float> vertices = loader->getVertices();
+	std::unique_ptr<unsigned int> indices = loader->getIndices();
+	
 	double currentTime = glfwGetTime();
 	double lastFPSUpdate = currentTime;
 	int nbFrames = 0;
@@ -86,8 +93,8 @@ int main()
 	glfwSetCursorPos(window, 0.0, 0.0);
 	glfwSwapInterval(0);
 	glfwSetKeyCallback(window,Controller::key_callback);
-	Renderer renderer(WIDTH,HEIGHT);
-	renderer.initialise(cube,sizeof(cube));
+	Renderer renderer(WIDTH,HEIGHT,loader);
+	renderer.initialise(vertices.get(), geometrySize,indices.get(),indicesSize);
 	
 
 	while (!glfwWindowShouldClose(window)) {
