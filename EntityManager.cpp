@@ -3,8 +3,8 @@
 #include <memory>
 #include <iterator>
 
-void EntityManager::addEntity(Entity* e) {
-	entities.push_back(std::make_shared<Entity>(*e));
+void EntityManager::addEntity(std::shared_ptr<Entity> e) {
+	entities.push_back(e);
 }
 
 EntityIterator EntityManager::getBegin() {

@@ -28,9 +28,9 @@ public:
 
 private:
 	std::shared_ptr<EntityManager> entityManager;
-	std::unique_ptr<Shader> mainShader;
-	std::unique_ptr<Shader> linesShader;
-	std::unique_ptr<Camera> cam;
+	std::shared_ptr<Shader> mainShader;
+	std::shared_ptr<Shader> linesShader;
+	std::shared_ptr<Camera> cam;
 	glm::mat4 generateModelMatrix(Entity*);
 	std::unique_ptr<Entity> testCube;
 	std::shared_ptr<GeometryLoader> loader;

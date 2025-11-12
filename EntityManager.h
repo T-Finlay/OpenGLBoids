@@ -14,7 +14,7 @@ private:
 
 public:
 	EntityManager() {}
-	void addEntity(Entity*);
+	void addEntity(std::shared_ptr<Entity>);
 	EntityIterator getBegin();
 	EntityIterator getEnd();
 };

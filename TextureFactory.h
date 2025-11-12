@@ -3,7 +3,6 @@
 #include <memory>
 #include "Texture.h"
 #include <string>
-#include <memory>
 class TextureFactory
 {
 private:

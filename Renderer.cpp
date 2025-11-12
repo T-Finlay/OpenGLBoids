@@ -1,5 +1,6 @@
 #include "Renderer.h"
 #include "EntityManager.h"
+#include "DefaultDraw.h"
 #include "stdio.h"
 #include <stdlib.h>
 #include <GL/gl3w.h>
@@ -34,6 +35,7 @@ void Renderer::initialise(float* geometry, int geometrySize,unsigned int* indici
 
 	mainShader.reset(new Shader("basic.vert", "basic.frag"));
 	linesShader.reset(new Shader("lines.vert", "lines.frag"));
+	DefaultDraw::setDefaultShader(mainShader);
 	mainShader->useShader();
 
 	setupBuffers(geometry, geometrySize,indicies,indiciesSize);
@@ -56,7 +58,6 @@ void Renderer::drawFrame(float deltaTimeMs) {
 
 	mainShader->useShader();
 	drawAllEntities();
-	//drawEntity(testCube.get());
 	linesShader->useShader();
 	drawAxisLines();
 }
@@ -76,23 +77,14 @@ void Renderer::DebugCallBack(GLenum source, GLenum type, GLuint id, GLenum sever
 	}
 }
 
-glm::mat4 Renderer::generateModelMatrix(Entity* e) {
-	glm::mat4 modelMatrix = glm::mat4(1.f);
-	modelMatrix = glm::translate(modelMatrix, e->position);
-	modelMatrix = glm::rotate(modelMatrix, e->rotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
-	modelMatrix = glm::rotate(modelMatrix, e->rotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
-	modelMatrix = glm::rotate(modelMatrix, e->rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
-	modelMatrix = glm::scale(modelMatrix, e->scale);
-	return modelMatrix;
-}
-
 void Renderer::initTestModel() {
 	ModelRenderData testData = loader->getModelRenderData("shark.obj");
-	Entity* testObj = new Entity(testData.firstIndexIndex, testData.numIndices,VAOs[0],"shark.jpg",
+	std::shared_ptr<Entity> testObj (new Entity(testData.firstIndexIndex, testData.numIndices, VAOs[0], "shark.jpg",
 		glm::vec3(0.f, 0.f, 0.f),
 		glm::vec3(0.f, 0.f, 0.f),
-		glm::vec3(1.f, 1.f, 1.f)
-	);
+		glm::vec3(1.f, 1.f, 1.f),
+		true
+	));
 	entityManager->addEntity(testObj);
 }
 
@@ -125,7 +117,7 @@ void Renderer::setupBuffers(float* geometry,int geometrySize, unsigned int* indi
 	glBindBuffer(GL_ARRAY_BUFFER, Buffers[0]);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[0]);
 
-#ifdef OUTPUT_MESH_DATA
+#ifdef DEBUG_MESH_DATA
 	std::cout << "debug vertices" << std::endl;
 	int floatN = 0;
 	for (int vtxN = 0;vtxN < geometrySize / 8;vtxN++) {
@@ -173,23 +165,7 @@ void Renderer::drawAllEntities() {
 	EntityIterator end = entityManager->getEnd();
 
 	while (current != end) {
-		drawEntity(current->get());
+		current->get()->draw(cam);
 		current++;
 	}
-}
-
-void Renderer::drawEntity(Entity* e) {
-	if (e == nullptr) {
-		std::cout << "attempting to draw null entity, returning " << std::endl;
-		return;
-	}
-	glBindVertexArray(e->VAOIndex);
-
-	glm::mat4 modelMatrix = generateModelMatrix(e);
-	glUniformMatrix4fv(linesShader->uniformLocation("model"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
-	glUniformMatrix4fv(linesShader->uniformLocation("view"), 1, GL_FALSE, glm::value_ptr(cam->viewMatrix));
-	glUniformMatrix4fv(linesShader->uniformLocation("projection"), 1, GL_FALSE, glm::value_ptr(cam->projectionMatrix));
-	e->texture->bind();
-
-	glDrawElements(GL_TRIANGLES, (e->indexCount), GL_UNSIGNED_INT, (const void*)(e->firstIndexIndex));
 }

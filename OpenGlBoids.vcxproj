@@ -124,6 +124,8 @@
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Controller.cpp" />
+    <ClCompile Include="DefaultDraw.cpp" />
+    <ClCompile Include="DrawRoutine.cpp" />
     <ClCompile Include="Entity.cpp" />
     <ClCompile Include="EntityManager.cpp" />
     <ClCompile Include="GeometryLoader.cpp" />
@@ -137,6 +139,8 @@
   <ItemGroup>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Controller.h" />
+    <ClInclude Include="DefaultDraw.h" />
+    <ClInclude Include="DrawRoutine.h" />
     <ClInclude Include="Entity.h" />
     <ClInclude Include="EntityManager.h" />
     <ClInclude Include="GeometryLoader.h" />
