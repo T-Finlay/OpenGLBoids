@@ -29,24 +29,19 @@ glm::vec3 red = glm::vec3(1.f, 0.f, 0.f);
 glm::vec3 green = glm::vec3(0.f, 1.f, 0.f);
 glm::vec3 blue = glm::vec3(0.f, 0.f, 1.f);
 
-void Renderer::initialise(float* geometry, int geometrySize,unsigned int* indicies, int indiciesSize ) {
+void Renderer::initialise(std::shared_ptr<EntityManager> entityManager) {
 	glEnable(GL_DEBUG_OUTPUT);
 	glDebugMessageCallback(Renderer::DebugCallBack, 0);
 
-	mainShader.reset(new Shader("basic.vert", "basic.frag"));
-	linesShader.reset(new Shader("lines.vert", "lines.frag"));
-	DefaultDraw::setDefaultShader(mainShader);
-	mainShader->useShader();
-
-	setupBuffers(geometry, geometrySize,indicies,indiciesSize);
+	createBuffers();
+	setupBuffers(entityManager);
 
 	glEnable(GL_DEPTH_TEST);
 	
 	cam.reset(new Camera(glm::vec3(0.f, 0.f, 10.f), glm::vec3(0.f, 0.f, -1.f), glm::vec3(0.f, 1.f, 0.f), glm::vec3(0.f, 0.f, 0.f),width,height));
-	initTestModel();
 }
 
-void Renderer::drawFrame(float deltaTimeMs) {
+void Renderer::drawFrame(float deltaTimeMs, std::shared_ptr<EntityManager> entityManager) {
 	glDepthFunc(GL_LESS);
 	cam->update(deltaTimeMs);
 
@@ -56,8 +51,7 @@ void Renderer::drawFrame(float deltaTimeMs) {
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-	mainShader->useShader();
-	drawAllEntities();
+	drawAllEntities(entityManager);
 	linesShader->useShader();
 	drawAxisLines();
 }
@@ -66,9 +60,6 @@ Renderer::Renderer(int w, int h, std::shared_ptr<GeometryLoader> l) {
 	width = w;
 	height = h;
 	loader = l;
-	
-	//maybe move this in the future:
-	entityManager = std::make_shared<EntityManager>(*(new EntityManager()));
 }
 
 void Renderer::DebugCallBack(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
@@ -77,15 +68,29 @@ void Renderer::DebugCallBack(GLenum source, GLenum type, GLuint id, GLenum sever
 	}
 }
 
-void Renderer::initTestModel() {
-	ModelRenderData testData = loader->getModelRenderData("shark.obj");
-	std::shared_ptr<Entity> testObj (new Entity(testData.firstIndexIndex, testData.numIndices, VAOs[0], "shark.jpg",
-		glm::vec3(0.f, 0.f, 0.f),
-		glm::vec3(0.f, 0.f, 0.f),
-		glm::vec3(1.f, 1.f, 1.f),
-		true
-	));
-	entityManager->addEntity(testObj);
+void Renderer::compileShaders() {
+	mainShader.reset(new Shader("basic.vert", "basic.frag"));
+	linesShader.reset(new Shader("lines.vert", "lines.frag"));
+	mainShader->useShader();
+}
+
+std::shared_ptr<Shader> Renderer::getMainShader()
+{
+	return mainShader;
+}
+
+GLuint Renderer::getMainVao() {
+	return VAOs[0];
+}
+
+ModelRenderData Renderer::getModelData(std::string model) {
+	return loader->getModelRenderData(model);
+}
+
+void Renderer::createBuffers() {
+	glGenVertexArrays(NUM_VAOS, VAOs);
+	glCreateBuffers(NUM_BUFFERS, Buffers);
+	glCreateBuffers(NUM_EBOS, EBOs);
 }
 
 void Renderer::drawAxisLines() {
@@ -108,11 +113,11 @@ void Renderer::drawAxisLines() {
 	glDrawArrays(GL_LINE_STRIP, 4, 2);
 }
 
-void Renderer::setupBuffers(float* geometry,int geometrySize, unsigned int* indicies, int indiciesSize) {
-	glGenVertexArrays(NUM_VAOS, VAOs);
-	glCreateBuffers(NUM_BUFFERS, Buffers);
-	glCreateBuffers(NUM_EBOS, EBOs);
-
+void Renderer::setupBuffers(std::shared_ptr<EntityManager> entityManager) {
+	std::unique_ptr<float> geometry = loader->getVertices();
+	int geometrySize = loader->getNumVertexFloats();
+	std::unique_ptr<unsigned int> indicies = loader->getIndices();
+	int indiciesSize = loader->getNumIndices();
 	glBindVertexArray(VAOs[0]);
 	glBindBuffer(GL_ARRAY_BUFFER, Buffers[0]);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[0]);
@@ -126,7 +131,7 @@ void Renderer::setupBuffers(float* geometry,int geometrySize, unsigned int* indi
 			ny = geometry[floatN++], nz = geometry[floatN++];
 		printf("v%d - x: %f, y: %f, z: %f, u: %f, v: %f, nx: %f, ny: %f, nz: %f\n", vtxN,x,y,z,u,v,nx,ny,nz);
 	}
-
+	
 	std::cout << "debug indicies" << std::endl;
 	int intN = 0;
 	for (int triN = 0;triN < indiciesSize / 3;triN++) {
@@ -135,8 +140,8 @@ void Renderer::setupBuffers(float* geometry,int geometrySize, unsigned int* indi
 	}
 #endif
 
-	glNamedBufferStorage(Buffers[0], geometrySize * sizeof(float), geometry, 0);
-	glNamedBufferStorage(EBOs[0], indiciesSize * sizeof(unsigned int), indicies, 0);
+	glNamedBufferStorage(Buffers[0], geometrySize * sizeof(float), geometry.get(), 0);
+	glNamedBufferStorage(EBOs[0], indiciesSize * sizeof(unsigned int), indicies.get(), 0);
 
 	//x y z
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
@@ -160,7 +165,7 @@ void Renderer::setupBuffers(float* geometry,int geometrySize, unsigned int* indi
 	glEnableVertexAttribArray(0);
 }
 
-void Renderer::drawAllEntities() {
+void Renderer::drawAllEntities(std::shared_ptr<EntityManager> entityManager) {
 	EntityIterator current = entityManager->getBegin();
 	EntityIterator end = entityManager->getEnd();
 

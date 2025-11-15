@@ -1,10 +1,6 @@
 #include "DrawRoutine.h"
 #include "Entity.h"
 
-DrawRoutine::DrawRoutine(std::shared_ptr<Shader> s) {
-	shader = s;
-}
-
 DrawRoutine::~DrawRoutine() {}
 
 glm::mat4 DrawRoutine::generateModelMatrix(Entity* self)

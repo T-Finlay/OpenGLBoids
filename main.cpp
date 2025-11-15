@@ -70,39 +70,45 @@ float cubeOld [] =
 	-1.f,-1.f,-1.f,0.f,0.f
 };
 
-int main()
-{
+
+void glInitialise(std::string title,GLFWwindow** window) {
+	glfwInit();
+	glfwWindowHint(GLFW_SAMPLES, 4);
+	*window = glfwCreateWindow(WIDTH, HEIGHT, title.c_str(), NULL, NULL);
+	Controller::setWindow(*window);
+	glfwMakeContextCurrent(*window);
+	gl3wInit();
+	glfwSetInputMode(*window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetCursorPos(*window, 0.0, 0.0);
+	glfwSwapInterval(0);
+	glfwSetKeyCallback(*window, Controller::key_callback);
+}
+
+int main() {
 	std::string title = "Boids Project";
-	std::shared_ptr<GeometryLoader> loader(new GeometryLoader());
-	loader->loadObjFile("shark.obj");
-	int geometrySize = loader->getNumVertexFloats();
-	int indicesSize = loader->getNumIndices();
-	std::unique_ptr<float> vertices = loader->getVertices();
-	std::unique_ptr<unsigned int> indices = loader->getIndices();
-	
+	GLFWwindow* window;
 	double currentTime = glfwGetTime();
 	double lastFPSUpdate = currentTime;
 	int nbFrames = 0;
-	glfwInit();
-	glfwWindowHint(GLFW_SAMPLES,4);
-	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, title.c_str(), NULL, NULL);
-	Controller::setWindow(window);
-	glfwMakeContextCurrent(window);
-	gl3wInit();
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	glfwSetCursorPos(window, 0.0, 0.0);
-	glfwSwapInterval(0);
-	glfwSetKeyCallback(window,Controller::key_callback);
-	Renderer renderer(WIDTH,HEIGHT,loader);
-	renderer.initialise(vertices.get(), geometrySize,indices.get(),indicesSize);
-	
+
+	//the order here is actually very important
+	glInitialise(title,&window);
+	std::shared_ptr<GeometryLoader> loader(new GeometryLoader());
+	std::shared_ptr<EntityManager> entityManager(new EntityManager());
+	Renderer renderer(WIDTH, HEIGHT, loader);
+	renderer.compileShaders();
+	entityManager->loadScene(loader);
+	renderer.initialise(entityManager);
+	entityManager->startScene(&renderer);
 
 	while (!glfwWindowShouldClose(window)) {
 		double newTime = glfwGetTime();
 		double deltaTime = newTime - currentTime;
 		currentTime = newTime;
 
-		renderer.drawFrame((float)deltaTime * 1000);
+
+		entityManager->updateScene(deltaTime);
+		renderer.drawFrame((float)deltaTime * 1000,entityManager);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 		nbFrames++;

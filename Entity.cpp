@@ -2,20 +2,21 @@
 #include "TextureFactory.h"
 #include "DrawRoutine.h"
 #include "DefaultDraw.h"
+#include "Renderer.h"
+#include "Behaviour.h"
 #include <iostream>
 
-Entity::Entity(unsigned int fstIndex, unsigned int nIndex, unsigned int vao, 
-		std::string tex, glm::vec3 pos, glm::vec3 rot, glm::vec3 scl, bool useDefaultDraw) {
-	firstIndexIndex = fstIndex;
-	indexCount = nIndex;
-	VAOIndex = vao;
-	texture = TextureFactory::getTextureFactory()->registerTexture(tex);
+Entity::Entity(glm::vec3 pos, glm::vec3 rot, glm::vec3 scl, std::string modelName, std::string textureName) {
 	position = pos;
 	rotation = rot;
 	scale = scl;
-	if (useDefaultDraw) {
-		drawRoutine = DefaultDraw::generateDefaultDraw();
-	}
+	drawRoutine.reset(new DefaultDraw(modelName, textureName));
+}
+
+Entity::Entity(glm::vec3 pos, glm::vec3 rot, glm::vec3 scl) {
+	position = pos;
+	rotation = rot;
+	scale = scl;
 }
 
 void Entity::draw(std::shared_ptr<Camera> cam) {
@@ -30,4 +31,20 @@ void Entity::setDrawRoutine(std::unique_ptr<DrawRoutine> newDrawRoutine) {
 	drawRoutine = std::move(newDrawRoutine);
 }
 
-Entity::~Entity() {};
+Entity::~Entity() {}
+void Entity::addBehaviour(std::unique_ptr<Behaviour> b) {
+	behaviours.push_back(std::move(b));
+}
+
+void Entity::update(float deltaTime) {
+	for (std::unique_ptr<Behaviour>& behaviour : behaviours) {
+		behaviour->update(deltaTime,shared_from_this());
+	}
+}
+
+void Entity::start(Renderer* r) {
+	drawRoutine->initialise(shared_from_this(),r);
+	for (std::unique_ptr<Behaviour>& behaviour : behaviours) {
+		behaviour->initialise(shared_from_this());
+	}
+}
