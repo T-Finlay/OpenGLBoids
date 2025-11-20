@@ -60,6 +60,15 @@
     <ClCompile Include="TestBehaviour.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="BoidsManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ComputeShader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BoidsDrawer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer.h">
@@ -107,11 +116,23 @@
     <ClInclude Include="TestBehaviour.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="BoidsManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ComputeShader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BoidsDrawer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\basic.vert" />
     <None Include="shaders\basic.frag" />
     <None Include="shaders\lines.vert" />
     <None Include="shaders\lines.frag" />
+    <None Include="shaders\boids.comp" />
+    <None Include="shaders\boid.vert" />
+    <None Include="shaders\boid.frag" />
   </ItemGroup>
 </Project>

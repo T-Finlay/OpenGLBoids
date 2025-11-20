@@ -1,0 +1,130 @@
+#version 450 core
+
+layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+
+struct boidData {
+	vec4 position;
+	vec4 direction;
+};
+
+uniform float deltaTime;
+uniform uint numBoids;
+uniform float coheasionBias;
+uniform float separationBias;
+uniform float alignmentBias;
+uniform float maintainanceBias;
+uniform float homingBias;
+uniform float boidRange;
+uniform float boidProximityRange;
+uniform float boidDetectionRange;
+uniform float boidSpeedPerSecond;
+//note homing bias is multiplied per unit outside area, all other biases are absolute
+
+layout(binding = 0,std430) readonly buffer ReadBuffer {
+    boidData boidDatIn[];
+};
+
+layout (binding = 1,std430) writeonly buffer WriteBuffer {
+	boidData boidDatOut[];
+};
+
+vec3 boidTurning(vec3 position) {
+	//if beyond bounds, turn to centre.
+	float outMargin = 0.0f;
+	if (position.x > boidRange) {
+		outMargin += position.x - boidRange;
+	}
+
+	if (position.x < -boidRange) {
+		outMargin += boidRange - position.x;
+	}
+
+	if (position.y > boidRange) {
+		outMargin += position.y- boidRange;
+	}
+
+	if (position.y < -boidRange) {
+		outMargin += boidRange - position.y;
+	}
+
+	if (position.z > boidRange) {
+		outMargin += position.y- boidRange;
+	}
+
+	if (position.z < -boidRange) {
+		outMargin += boidRange - position.z;
+	}
+	
+	vec3 boidToOrigin = normalize(-position);
+
+	return boidToOrigin * outMargin * homingBias;
+}
+
+void main() {
+	// Width and Height of the entire dispatch space in threads
+    // You must pass these as uniforms if they vary
+    const uint totalWidth = gl_NumWorkGroups.x * 1;
+    const uint totalHeight = gl_NumWorkGroups.y * 1;
+
+    // Calculate the 1D index
+    uint myIndex = gl_GlobalInvocationID.x + 
+                   gl_GlobalInvocationID.y * totalWidth + 
+                   gl_GlobalInvocationID.z * totalWidth * totalHeight;
+	
+	vec3 myBoidPos = boidDatIn[myIndex].position.xyz;
+	vec3 myBoidDir = boidDatIn[myIndex].direction.xyz;
+	//rare edge case where somehow the boid was randomly created with zero direction
+	if (myBoidDir == vec3(0.0f,0.0f,0.0f)) {
+		myBoidDir = vec3(0.0f,0.0f,1.0f);
+	}
+	vec3 separationVector = vec3(0.0f,0.0f,0.0f);
+	vec3 alignmentVector = vec3(0.0f,0.0f,0.0f);
+	vec3 coheasionVector = vec3(0.0f,0.0f,0.0f);
+	uint boidsConsidered = 0;
+	uint separationsConsidered = 0;
+	for (int i = 0; i< numBoids; i++) {
+		if (i == myIndex) {
+			continue;
+		}
+		vec3 currentBoidPos = boidDatIn[myIndex].position.xyz;
+		vec3 currentBoidDir = boidDatIn[myIndex].direction.xyz;
+
+		if (length(myBoidPos - currentBoidPos) > boidDetectionRange) {
+			continue;
+		}
+
+		//separation
+		if(length(myBoidPos - currentBoidPos) < boidProximityRange) {
+			separationVector -= (currentBoidPos - myBoidPos);
+			separationsConsidered++;
+		}
+		boidsConsidered++;
+		//alignment
+		alignmentVector += currentBoidDir;
+
+		//coheasion
+		coheasionVector += currentBoidPos;
+	}
+	if (boidsConsidered > 0) {
+		coheasionVector = coheasionVector/ float(boidsConsidered);
+		coheasionVector = (coheasionVector - myBoidPos); //vector from my position to average percieved position
+		alignmentVector = alignmentVector/ float(boidsConsidered);
+		alignmentVector = (alignmentVector - myBoidDir); //vector difference of my direction to the average direction
+		coheasionVector = normalize(coheasionVector) * coheasionBias;
+		alignmentVector = normalize(alignmentVector) * alignmentBias;
+	}
+	if (separationsConsidered > 0) {
+		separationVector = separationVector / float(separationsConsidered); //average vector away from nearby boids
+		separationVector = normalize(separationVector) * separationBias;
+	}
+
+	vec3 turningVector = boidTurning(myBoidPos);
+	vec3 maintainanceVector = myBoidDir * maintainanceBias;
+
+	vec3 newDirection = normalize(coheasionVector + separationVector + alignmentVector + maintainanceVector + turningVector);
+	vec3 newPosition = myBoidPos + (newDirection * boidSpeedPerSecond * deltaTime);
+
+	boidDatOut[myIndex].position = vec4(newPosition,0.0f);
+	boidDatOut[myIndex].direction = vec4(newDirection,0.0f);
+	
+}

@@ -10,15 +10,9 @@
 #include "GeometryLoader.h"
 #include "EntityManager.h"
 #include <memory>
-#define NUM_BUFFERS 2
-#define	NUM_EBOS 1
-#define NUM_VAOS 2
 class Renderer
 {
 public:
-	GLuint Buffers[NUM_BUFFERS];
-	GLuint VAOs[NUM_VAOS];
-	GLuint EBOs[NUM_EBOS];
 	void initialise(std::shared_ptr<EntityManager>);
 	void drawFrame(float,std::shared_ptr<EntityManager>);
 	Renderer(int,int,std::shared_ptr<GeometryLoader>);
@@ -29,8 +23,14 @@ public:
 	std::shared_ptr<Shader> getMainShader();
 	GLuint getMainVao();
 	ModelRenderData getModelData(std::string model);
+	void bindMainVAO();
 
 private:
+	GLuint mainVAO;
+	GLuint mainBuffer;
+	GLuint mainEBO;
+	GLuint linesVAO;
+	GLuint linesBuffer;
 	std::shared_ptr<Shader> mainShader;
 	std::shared_ptr<Shader> linesShader;
 	std::shared_ptr<Camera> cam;

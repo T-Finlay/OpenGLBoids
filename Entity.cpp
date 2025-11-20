@@ -19,12 +19,12 @@ Entity::Entity(glm::vec3 pos, glm::vec3 rot, glm::vec3 scl) {
 	scale = scl;
 }
 
-void Entity::draw(std::shared_ptr<Camera> cam) {
+void Entity::draw(std::shared_ptr<Camera> cam,Renderer* r) {
 	if (drawRoutine == nullptr) {
 		std::cout << "attempting to draw entity with no draw routine, returning: " << std::endl;
 		return;
 	}
-	drawRoutine->draw(shared_from_this(), cam);
+	drawRoutine->draw(shared_from_this(), cam, r);
 }
 
 void Entity::setDrawRoutine(std::unique_ptr<DrawRoutine> newDrawRoutine) {
@@ -47,4 +47,8 @@ void Entity::start(Renderer* r) {
 	for (std::unique_ptr<Behaviour>& behaviour : behaviours) {
 		behaviour->initialise(shared_from_this());
 	}
+}
+
+void Entity::preInitialise(Renderer* r, std::shared_ptr<GeometryLoader> loader) {
+	drawRoutine->preInitialise(shared_from_this(), r, loader);
 }

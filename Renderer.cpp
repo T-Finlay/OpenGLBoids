@@ -33,6 +33,7 @@ void Renderer::initialise(std::shared_ptr<EntityManager> entityManager) {
 	glEnable(GL_DEBUG_OUTPUT);
 	glDebugMessageCallback(Renderer::DebugCallBack, 0);
 
+	compileShaders();
 	createBuffers();
 	setupBuffers(entityManager);
 
@@ -80,22 +81,33 @@ std::shared_ptr<Shader> Renderer::getMainShader()
 }
 
 GLuint Renderer::getMainVao() {
-	return VAOs[0];
+	return mainVAO;
 }
 
 ModelRenderData Renderer::getModelData(std::string model) {
 	return loader->getModelRenderData(model);
 }
 
+void Renderer::bindMainVAO() {
+	glBindVertexArray(mainVAO);
+}
+
 void Renderer::createBuffers() {
-	glGenVertexArrays(NUM_VAOS, VAOs);
-	glCreateBuffers(NUM_BUFFERS, Buffers);
-	glCreateBuffers(NUM_EBOS, EBOs);
+	GLuint vaos[2];
+	glGenVertexArrays(2, vaos);
+	mainVAO = vaos[0];
+	linesVAO = vaos[1];
+
+	GLuint buffers[3];
+	glCreateBuffers(3, buffers);
+	mainBuffer = buffers[0];
+	mainEBO = buffers[1];
+	linesBuffer = buffers[2];
 }
 
 void Renderer::drawAxisLines() {
 	glDepthFunc(GL_ALWAYS);
-	glBindVertexArray(VAOs[1]);
+	glBindVertexArray(linesVAO);
 	glm::mat4 model = glm::mat4(1.f);
 	model = glm::translate(model, glm::vec3(0.f, 0.f, 0.f));
 	glUniformMatrix4fv(linesShader->uniformLocation("model"), 1, GL_FALSE, glm::value_ptr(model));
@@ -118,9 +130,9 @@ void Renderer::setupBuffers(std::shared_ptr<EntityManager> entityManager) {
 	int geometrySize = loader->getNumVertexFloats();
 	std::unique_ptr<unsigned int> indicies = loader->getIndices();
 	int indiciesSize = loader->getNumIndices();
-	glBindVertexArray(VAOs[0]);
-	glBindBuffer(GL_ARRAY_BUFFER, Buffers[0]);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[0]);
+	glBindVertexArray(mainVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, mainBuffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mainEBO);
 
 #ifdef DEBUG_MESH_DATA
 	std::cout << "debug vertices" << std::endl;
@@ -140,8 +152,8 @@ void Renderer::setupBuffers(std::shared_ptr<EntityManager> entityManager) {
 	}
 #endif
 
-	glNamedBufferStorage(Buffers[0], geometrySize * sizeof(float), geometry.get(), 0);
-	glNamedBufferStorage(EBOs[0], indiciesSize * sizeof(unsigned int), indicies.get(), 0);
+	glNamedBufferStorage(mainBuffer, geometrySize * sizeof(float), geometry.get(), 0);
+	glNamedBufferStorage(mainEBO, indiciesSize * sizeof(unsigned int), indicies.get(), 0);
 
 	//x y z
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
@@ -153,14 +165,14 @@ void Renderer::setupBuffers(std::shared_ptr<EntityManager> entityManager) {
 
 	//nX nY nZ
 	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
-	glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(2);
 
 	glEnable(GL_DEPTH_TEST);
 
-	glBindVertexArray(VAOs[1]);
-	glBindBuffer(GL_ARRAY_BUFFER, Buffers[1]);
+	glBindVertexArray(linesVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, linesBuffer);
 
-	glNamedBufferStorage(Buffers[1], sizeof(axisLines), axisLines, 0);
+	glNamedBufferStorage(linesBuffer, sizeof(axisLines), axisLines, 0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 }
@@ -170,7 +182,7 @@ void Renderer::drawAllEntities(std::shared_ptr<EntityManager> entityManager) {
 	EntityIterator end = entityManager->getEnd();
 
 	while (current != end) {
-		current->get()->draw(cam);
+		current->get()->draw(cam,this);
 		current++;
 	}
 }

@@ -134,6 +134,11 @@ std::unique_ptr<unsigned int> GeometryLoader::getIndices(void) {
 }
 
 void GeometryLoader::loadObjFile(std::string modelName) {
+    if (getModelRenderData(modelName).numIndices != 0) {
+        //.obj file has already been loaded
+        return;
+    }
+
     std::unique_ptr<std::vector<VertexData>> vertices = loadOBJtoNonEBO(modelName);
     std::unique_ptr<ModelData> modelData = convertTriangulatedVerticesToModelData(std::move(vertices));
     ModelRenderData mrd;

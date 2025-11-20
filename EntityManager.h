@@ -32,7 +32,8 @@ public:
 	EntityIterator getBegin();
 	EntityIterator getEnd();
 
-	void loadScene(std::shared_ptr<GeometryLoader> loader);
+	void createSceneEntities(GLuint*);
+	void preInitialiseScene(Renderer* r, std::shared_ptr<GeometryLoader> loader);
 	void startScene(Renderer* r);
 	void updateScene(float deltaTime);
 };

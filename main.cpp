@@ -90,14 +90,14 @@ int main() {
 	double currentTime = glfwGetTime();
 	double lastFPSUpdate = currentTime;
 	int nbFrames = 0;
-
+	GLuint boidBuffer;
 	//the order here is actually very important
 	glInitialise(title,&window);
 	std::shared_ptr<GeometryLoader> loader(new GeometryLoader());
 	std::shared_ptr<EntityManager> entityManager(new EntityManager());
 	Renderer renderer(WIDTH, HEIGHT, loader);
-	renderer.compileShaders();
-	entityManager->loadScene(loader);
+	entityManager->createSceneEntities(&boidBuffer);
+	entityManager->preInitialiseScene(&renderer,loader);
 	renderer.initialise(entityManager);
 	entityManager->startScene(&renderer);
 
@@ -105,7 +105,6 @@ int main() {
 		double newTime = glfwGetTime();
 		double deltaTime = newTime - currentTime;
 		currentTime = newTime;
-
 
 		entityManager->updateScene(deltaTime);
 		renderer.drawFrame((float)deltaTime * 1000,entityManager);

@@ -24,7 +24,7 @@ typedef struct TriData {
 
 typedef struct ModelRenderData {
 	unsigned int firstIndexIndex;
-	unsigned int numIndices;
+	unsigned int numIndices = 0;
 } ModelRenderData;
 
 class GeometryLoader
