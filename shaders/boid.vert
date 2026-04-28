@@ -31,7 +31,7 @@ mat4 modelMatrix() {
 	vec3 boidPos = dat[gl_InstanceID].position.xyz;
 	vec3 boidDir = dat[gl_InstanceID].direction.xyz;
 
-	float yaw = atan(boidDir.x,boidDir.y);
+	float yaw = atan(boidDir.x,boidDir.z);
 	float pitch = atan(boidDir.y,sqrt(pow(boidDir.x,2) + pow(boidDir.z,2)));
 	translationMatrix[0][0] = 1.0f;
 	translationMatrix[1][1] = 1.0f;
@@ -48,13 +48,15 @@ mat4 modelMatrix() {
 	rotationMatrixPitch[2][2] = cos(pitch);
 	rotationMatrixPitch[3][3] = 1.0f;
 
+	
 	rotationMatrixYaw[0][0] = cos(yaw);
-	rotationMatrixYaw[0][2] = sin(yaw);
+	rotationMatrixYaw[0][2] = -sin(yaw);
 	rotationMatrixYaw[1][1] = 1.0f;
-	rotationMatrixYaw[2][0] = -sin(yaw);
+	rotationMatrixYaw[2][0] = sin(yaw);
 	rotationMatrixYaw[2][2] = cos(yaw);
 	rotationMatrixYaw[3][3] = 1.0f;
-	return translationMatrix * rotationMatrixPitch * rotationMatrixYaw;
+	
+	return translationMatrix * rotationMatrixYaw * rotationMatrixPitch;
 }
 
 void main() {

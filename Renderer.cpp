@@ -126,9 +126,9 @@ void Renderer::drawAxisLines() {
 }
 
 void Renderer::setupBuffers(std::shared_ptr<EntityManager> entityManager) {
-	std::unique_ptr<float> geometry = loader->getVertices();
+	std::unique_ptr<float[]> geometry = loader->getVertices();
 	int geometrySize = loader->getNumVertexFloats();
-	std::unique_ptr<unsigned int> indicies = loader->getIndices();
+	std::unique_ptr<unsigned int[]> indicies = loader->getIndices();
 	int indiciesSize = loader->getNumIndices();
 	glBindVertexArray(mainVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, mainBuffer);

@@ -1,6 +1,11 @@
 #include "BoidsManager.h"
 #include <random>
 
+//#define DEBUG_BOID_BUFFER_INITIALISATION
+// 
+// used only for debug, will heavily affect performance 
+//#define DEBUG_BOID_BUFFER_PRE_POST_COMPUTE_SHADER
+
 BoidsManager::BoidsManager(GLuint* ptr) {
 	boidRenderBufferPointer = ptr;
 }
@@ -14,40 +19,68 @@ void BoidsManager::initialise(std::shared_ptr<Entity> self) {
 	std::unique_ptr<BoidData[]> boidDatas = initialiseBoidsData();
 
 	//buffers must be bound at least once to actually be created on the GPU by opengl
-	glBindBuffer(GL_ARRAY_BUFFER, readingBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, writingBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, readingBuffer);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, writingBuffer);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
 	//Note the DYNAMIC_DRAW usage enum, data is frequently modified and used by the vertex shader,
 	//so this enum is appropriate
 	glNamedBufferData(readingBuffer, NUM_BOIDS * sizeof(BoidData), boidDatas.get(), GL_DYNAMIC_DRAW);
 	glNamedBufferData(writingBuffer, NUM_BOIDS * sizeof(BoidData), boidDatas.get(), GL_DYNAMIC_DRAW);
 
+#ifdef DEBUG_BOID_BUFFER_INITIALISATION
+	std::unique_ptr<float[]> bufferDat(new float[NUM_BOIDS * 8]);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, readingBuffer);
+	glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, NUM_BOIDS * 8 * sizeof(float), bufferDat.get());
+
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, writingBuffer);
+	glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, NUM_BOIDS * 8 * sizeof(float), bufferDat.get());
+#endif
+
 	computeShader->useShader();
 	glUniform1ui(computeShader->uniformLocation("numBoids"), (unsigned int)NUM_BOIDS);
 	glUniform1f(computeShader->uniformLocation("coheasionBias"), 1.f);
-	glUniform1f(computeShader->uniformLocation("separationBias"), 1.f);
+	glUniform1f(computeShader->uniformLocation("separationBias"), 5.f);
 	glUniform1f(computeShader->uniformLocation("alignmentBias"), 1.f);
 	glUniform1f(computeShader->uniformLocation("homingBias"), 0.5f);
-	glUniform1f(computeShader->uniformLocation("maintainanceBias"), 0.1f);
 	glUniform1f(computeShader->uniformLocation("boidRange"), MAX_SINGLE_AXIS_DIST_FROM_ORIGIN);
-	glUniform1f(computeShader->uniformLocation("boidProximityRange"), 1.f);
-	glUniform1f(computeShader->uniformLocation("boidDetectionRange"), 10.f);
-	glUniform1f(computeShader->uniformLocation("boidSpeedPerSecond"), 3.f);
+	glUniform1f(computeShader->uniformLocation("boidProximityRange"), 5.f);
+	glUniform1f(computeShader->uniformLocation("boidDetectionRange"), 15.f);
+	glUniform1f(computeShader->uniformLocation("maxTurningRateRadiansPerSecond"), 0.5f);
+	glUniform1f(computeShader->uniformLocation("boidSpeedPerSecond"), 8.f);
 }
 
 void BoidsManager::update(float deltaTime, std::shared_ptr<Entity> self) {
 	computeShader->useShader();
-	BoidData testbd[NUM_BOIDS];
 
+#ifdef DEBUG_BOID_BUFFER_PRE_POST_COMPUTE_SHADER
+	std::unique_ptr<float[]> bufferDat(new float[NUM_BOIDS * 8]);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, readingBuffer);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, readingBuffer);
+	glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, NUM_BOIDS * 8 * sizeof(float), bufferDat.get());
+
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, writingBuffer);
+	glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, NUM_BOIDS * 8 * sizeof(float), bufferDat.get());
+#endif
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, readingBuffer);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, writingBuffer);
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 	glUniform1f(computeShader->uniformLocation("deltaTime"), deltaTime);
-	glDispatchCompute(8, 8, 2); //must multiply to equal NUM_BOIDS
+	glDispatchCompute(16, 16, 32); //must multiply to equal NUM_BOIDS
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+
+#ifdef DEBUG_BOID_BUFFER_PRE_POST_COMPUTE_SHADER
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, readingBuffer);
+	glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, NUM_BOIDS * 8 * sizeof(float), bufferDat.get());
+
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, writingBuffer);
+	glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, NUM_BOIDS * 8 * sizeof(float), bufferDat.get());
+	
+	float n;
+	for (int i = 0; i < NUM_BOIDS * 8; i++) {
+		n = bufferDat[i];
+	}
+
+#endif
+
 	*boidRenderBufferPointer = writingBuffer;
 	swapBuffers();
 }
@@ -80,4 +113,5 @@ std::unique_ptr<BoidData[]> BoidsManager::initialiseBoidsData() {
 		boidData.get()[i].dir.w = 0.0f;//padding
 	}
 	return boidData;
+	
 }

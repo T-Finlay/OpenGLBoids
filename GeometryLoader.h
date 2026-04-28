@@ -40,8 +40,8 @@ private:
 public:
 	unsigned int getNumVertexFloats(void);
 	unsigned int getNumIndices(void);
-	std::unique_ptr<float> getVertices(void);
-	std::unique_ptr<unsigned int> getIndices(void);
+	std::unique_ptr<float[]> getVertices(void);
+	std::unique_ptr<unsigned int[]> getIndices(void);
 	void loadObjFile(std::string);
 	ModelRenderData getModelRenderData(std::string);
 };

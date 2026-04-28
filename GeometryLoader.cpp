@@ -119,17 +119,17 @@ unsigned int GeometryLoader::getNumIndices(void) {
     return indices.size();
 }
 
-std::unique_ptr<float> GeometryLoader::getVertices(void) {
+std::unique_ptr<float[]> GeometryLoader::getVertices(void) {
     int numFloats = rawVertexFloats.size();
-    std::unique_ptr<float> vertices(new float[numFloats]);
-    std::copy(rawVertexFloats.begin(),rawVertexFloats.end(), &(*vertices));
+    std::unique_ptr<float[]> vertices(new float[numFloats]);
+    std::copy(rawVertexFloats.begin(),rawVertexFloats.end(), vertices.get());
     return vertices;
 }
 
-std::unique_ptr<unsigned int> GeometryLoader::getIndices(void) {
+std::unique_ptr<unsigned int[]> GeometryLoader::getIndices(void) {
     int numInts = indices.size();
-    std::unique_ptr<unsigned int> indicesarray(new unsigned int[numInts]);
-    std::copy(indices.begin(), indices.end(), &(*indicesarray));
+    std::unique_ptr<unsigned int[]> indicesarray(new unsigned int[numInts]);
+    std::copy(indices.begin(), indices.end(), indicesarray.get());
     return indicesarray;
 }
 
@@ -168,8 +168,7 @@ ModelRenderData GeometryLoader::getModelRenderData(std::string modelName) {
     return modelDataLookup[modelName];
 }
 
-std::string VertexData::stringRepresentation()
-{
+std::string VertexData::stringRepresentation() {
     std::string retval = "";
     for (int ptrAdd = 0; ptrAdd < sizeof(VertexData);ptrAdd++) {
         retval += *(((char*)this) + ptrAdd);

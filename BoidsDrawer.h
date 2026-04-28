@@ -8,6 +8,10 @@ class BoidsDrawer :
     public DrawRoutine
 {
 public:
+    typedef struct BoidData {
+        glm::vec4 pos = glm::vec4(1.f, 1.f, 1.f, 1.f);
+        glm::vec4 dir = glm::vec4(1.f, 1.f, 1.f, 1.f);
+    } BoidData;
     BoidsDrawer(GLuint* ptr);
 
     // Inherited via DrawRoutine
@@ -23,5 +27,7 @@ private:
     unsigned int numIndices;
     void generateGLObjects();
     std::unique_ptr<Shader> boidShader;
+
+    void debugShaderStorageContent(void);
 };
 

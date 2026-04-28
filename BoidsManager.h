@@ -5,8 +5,8 @@
 #include "ComputeShader.h"
 #include "glm/glm.hpp"
 
-#define NUM_BOIDS 128
-#define MAX_SINGLE_AXIS_DIST_FROM_ORIGIN 50.f
+#define NUM_BOIDS 8192
+#define MAX_SINGLE_AXIS_DIST_FROM_ORIGIN 100.f
 
 typedef struct BoidData {
     glm::vec4 pos = glm::vec4(1.f,1.f,1.f,1.f);

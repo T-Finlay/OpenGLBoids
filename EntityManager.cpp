@@ -23,6 +23,7 @@ EntityIterator EntityManager::getEnd() {
 	return entities.end();
 }
 
+//create entity objects for the scene (does not load geometry)
 void EntityManager::createSceneEntities(GLuint* boidBuffer) {
 	//ideally i would have this read a level format from a json file or something
 	//but that actually proved much more complex than i initially thought
@@ -45,6 +46,7 @@ void EntityManager::createSceneEntities(GLuint* boidBuffer) {
 	//addEntity(testFish);
 }
 
+//handles all pre initialisation for objects BEFORE renederer itself is initialised
 void EntityManager::preInitialiseScene(Renderer* r, std::shared_ptr<GeometryLoader> loader) {
 	EntityIterator current = getBegin();
 	EntityIterator end = getEnd();

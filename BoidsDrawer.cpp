@@ -5,6 +5,7 @@
 #include "glm/glm.hpp"
 #include "Shader.h"
 #include <GLM/gtc/type_ptr.hpp>
+//#define DEBUG_SHADER_STORAGE_CONTENT
 
 BoidsDrawer::BoidsDrawer(GLuint* ptr) {
 	boidDataBufferPointer = ptr;
@@ -33,18 +34,24 @@ void BoidsDrawer::draw(std::shared_ptr<Entity> self,
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, *boidDataBufferPointer);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, *boidDataBufferPointer);
 
+#ifdef DEBUG_SHADER_STORAGE_CONTENT
+	debugShaderStorageContent();
+#endif
+
 	//drawCall
 	texture->bind();
 	glDrawElementsInstanced(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, (const void*)firstIndexIndex, NUM_BOIDS);
 }
 
+
+
 void BoidsDrawer::preInitialise(std::shared_ptr<Entity> self, 
 	Renderer* renderer, std::shared_ptr<GeometryLoader> loader) {
 	GeometryLoader separateLoader;
 	separateLoader.loadObjFile("fish.obj");
-	std::unique_ptr<float> fishVertices = separateLoader.getVertices();
+	std::unique_ptr<float[]> fishVertices = separateLoader.getVertices();
 	int geometrySize = separateLoader.getNumVertexFloats();
-	std::unique_ptr<unsigned int> fishIndices = separateLoader.getIndices();
+	std::unique_ptr<unsigned int[]> fishIndices = separateLoader.getIndices();
 	int indicesSize = separateLoader.getNumIndices();
 
 	ModelRenderData mrd = separateLoader.getModelRenderData("fish.obj");
@@ -86,4 +93,11 @@ void BoidsDrawer::generateGLObjects() {
 	glGenBuffers(2, buffers);
 	fishVBO = buffers[0];
 	fishEBO = buffers[1];
+}
+
+void BoidsDrawer::debugShaderStorageContent(void) {
+	std::unique_ptr<float[]> boidData(new float[NUM_BOIDS*8]);
+	glGetBufferSubData(GL_SHADER_STORAGE_BUFFER,0, NUM_BOIDS * 8 * sizeof(float), boidData.get());
+
+	std::cout << "";
 }

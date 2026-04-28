@@ -12,12 +12,12 @@ uniform uint numBoids;
 uniform float coheasionBias;
 uniform float separationBias;
 uniform float alignmentBias;
-uniform float maintainanceBias;
 uniform float homingBias;
 uniform float boidRange;
 uniform float boidProximityRange;
 uniform float boidDetectionRange;
 uniform float boidSpeedPerSecond;
+uniform float maxTurningRateRadiansPerSecond;
 //note homing bias is multiplied per unit outside area, all other biases are absolute
 
 layout(binding = 0,std430) readonly buffer ReadBuffer {
@@ -57,7 +57,120 @@ vec3 boidTurning(vec3 position) {
 	
 	vec3 boidToOrigin = normalize(-position);
 
-	return boidToOrigin * outMargin * homingBias;
+	return boidToOrigin * 1.0f/2.0f * outMargin * outMargin;
+}
+
+bool isUnReal(vec3 v) {
+	return isnan(v.x) || isnan(v.y) || isnan(v.z) || isinf(v.x) || isinf(v.y) || isinf(v.z);
+}
+void BoidBehaviour(uint myIndex) {
+	vec3 myBoidPos = boidDatIn[myIndex].position.xyz;
+	vec3 myBoidDir = boidDatIn[myIndex].direction.xyz;
+	vec3 newDirection = vec3(0.0f,0.0f,0.0f);
+	//rare edge case where somehow the boid was randomly created with zero direction
+	if (myBoidDir == vec3(0.0f,0.0f,0.0f)) {
+		myBoidDir = vec3(0.0f,0.0f,1.0f);
+	}
+
+	vec3 separationVector = vec3(0.0f,0.0f,0.0f);
+	vec3 alignmentVector = vec3(0.0f,0.0f,0.0f);
+	vec3 coheasionVector = vec3(0.0f,0.0f,0.0f);
+
+	//even though these will always be an integer, glsl doesn't support implicit type conversions
+	//so to divide floats by these later, we need to keep them as floats as well,
+	//so we use + 1.0f rather than ++;
+	float visualsConsidered = 0.0f; 
+	float separationsConsidered = 0.0f;
+
+	for (int i = 0; i< numBoids; i++) {
+		if (i == myIndex) {
+			//do not consider yourself
+			continue;
+		}
+
+		vec3 currentBoidPos = boidDatIn[i].position.xyz;
+		vec3 currentBoidDir = boidDatIn[i].direction.xyz;
+
+		if (length(myBoidPos - currentBoidPos) > boidDetectionRange) {
+			continue;
+		}
+
+		//separation
+		if(length(myBoidPos - currentBoidPos) < boidProximityRange) {
+			separationVector -= (currentBoidPos - myBoidPos);
+			separationsConsidered = separationsConsidered + 1.0f;
+			continue;
+		}
+
+		visualsConsidered = visualsConsidered + 1.0f;
+		alignmentVector += currentBoidDir;
+		coheasionVector += currentBoidPos;
+	}
+
+	if (visualsConsidered > 0.0f) {
+
+		coheasionVector = coheasionVector/ visualsConsidered;
+		coheasionVector = (coheasionVector - myBoidPos); //vector from my position to average percieved position
+		alignmentVector = alignmentVector/ visualsConsidered;
+		coheasionVector = normalize(coheasionVector);
+		alignmentVector = normalize(alignmentVector);
+	}
+	if (separationsConsidered > 0.0f) {
+		separationVector = separationVector / separationsConsidered; //average vector away from nearby boids
+		separationVector = normalize(separationVector);
+	}
+
+	vec3 desiredDirection = (alignmentBias*alignmentVector) + (separationBias*separationVector) + (coheasionBias * coheasionVector) + (homingBias * boidTurning(myBoidPos));
+	if (desiredDirection == vec3(0.0f,0.0f,0.0f) || isUnReal(desiredDirection)) {
+		desiredDirection = vec3(1.0f,0.0f,0.0f);
+	}
+
+	desiredDirection = desiredDirection / (alignmentBias + separationBias + coheasionBias + homingBias);
+	
+	desiredDirection = normalize(desiredDirection);
+	//vec3 desiredDirection = vec3(1.0f,0.0f,0.0f);
+
+	float theta = maxTurningRateRadiansPerSecond * deltaTime; //theta is the amount we should rotate by
+	float angularDifference = acos(dot(myBoidDir,desiredDirection));
+	if(angularDifference < theta) {
+		newDirection = desiredDirection;
+	} else {
+
+
+		//see https://en.wikipedia.org/wiki/Rotation_matrix#Rotation_matrix_from_axis_and_angle
+		//reminder: glsl matrix indexing is column row, starting with [0][0] is top left
+		vec3 u = normalize(cross(myBoidDir,desiredDirection));
+		float rotationSign = determinant(mat3(myBoidDir,desiredDirection,u));
+		if (rotationSign > 0.0f) {
+			theta *= -1.0f;
+		}
+		mat3 r = mat3(0.0f);
+		float oneMinusCosTheta = (1-cos(theta));
+		float cosTheta = cos(theta);
+		float sinTheta = sin(theta);
+
+		r[0][0] = pow(u.x,2) * oneMinusCosTheta + cosTheta;
+		r[0][1] = u.x * u.y * oneMinusCosTheta - u.z*sinTheta;
+		r[0][2] = u.x * u.z * oneMinusCosTheta + u.y*sinTheta;
+		r[1][0] = u.x * u.y * oneMinusCosTheta + u.z*sinTheta;
+		r[1][1] = pow(u.y,2) * oneMinusCosTheta + cosTheta;
+		r[1][2] = u.y * u.z * oneMinusCosTheta - u.x*sinTheta;
+		r[2][0] = u.x * u.z * oneMinusCosTheta - u.y*sinTheta;
+		r[2][1] = u.y * u.z * oneMinusCosTheta + u.x*sinTheta;
+		r[2][2] = pow(u.z,2) * oneMinusCosTheta + cosTheta;
+
+		newDirection = normalize(r * myBoidDir);
+	}
+
+	//catchall
+	if (isUnReal(newDirection)) {
+		newDirection = myBoidDir;
+	}
+	
+	vec3 newPosition = myBoidPos + (newDirection * boidSpeedPerSecond * deltaTime);
+
+	boidDatOut[myIndex].position = vec4(newPosition,0.0f);
+	boidDatOut[myIndex].direction = vec4(newDirection,0.0f);
 }
 
 void main() {
@@ -71,60 +184,6 @@ void main() {
                    gl_GlobalInvocationID.y * totalWidth + 
                    gl_GlobalInvocationID.z * totalWidth * totalHeight;
 	
-	vec3 myBoidPos = boidDatIn[myIndex].position.xyz;
-	vec3 myBoidDir = boidDatIn[myIndex].direction.xyz;
-	//rare edge case where somehow the boid was randomly created with zero direction
-	if (myBoidDir == vec3(0.0f,0.0f,0.0f)) {
-		myBoidDir = vec3(0.0f,0.0f,1.0f);
-	}
-	vec3 separationVector = vec3(0.0f,0.0f,0.0f);
-	vec3 alignmentVector = vec3(0.0f,0.0f,0.0f);
-	vec3 coheasionVector = vec3(0.0f,0.0f,0.0f);
-	uint boidsConsidered = 0;
-	uint separationsConsidered = 0;
-	for (int i = 0; i< numBoids; i++) {
-		if (i == myIndex) {
-			continue;
-		}
-		vec3 currentBoidPos = boidDatIn[myIndex].position.xyz;
-		vec3 currentBoidDir = boidDatIn[myIndex].direction.xyz;
 
-		if (length(myBoidPos - currentBoidPos) > boidDetectionRange) {
-			continue;
-		}
-
-		//separation
-		if(length(myBoidPos - currentBoidPos) < boidProximityRange) {
-			separationVector -= (currentBoidPos - myBoidPos);
-			separationsConsidered++;
-		}
-		boidsConsidered++;
-		//alignment
-		alignmentVector += currentBoidDir;
-
-		//coheasion
-		coheasionVector += currentBoidPos;
-	}
-	if (boidsConsidered > 0) {
-		coheasionVector = coheasionVector/ float(boidsConsidered);
-		coheasionVector = (coheasionVector - myBoidPos); //vector from my position to average percieved position
-		alignmentVector = alignmentVector/ float(boidsConsidered);
-		alignmentVector = (alignmentVector - myBoidDir); //vector difference of my direction to the average direction
-		coheasionVector = normalize(coheasionVector) * coheasionBias;
-		alignmentVector = normalize(alignmentVector) * alignmentBias;
-	}
-	if (separationsConsidered > 0) {
-		separationVector = separationVector / float(separationsConsidered); //average vector away from nearby boids
-		separationVector = normalize(separationVector) * separationBias;
-	}
-
-	vec3 turningVector = boidTurning(myBoidPos);
-	vec3 maintainanceVector = myBoidDir * maintainanceBias;
-
-	vec3 newDirection = normalize(coheasionVector + separationVector + alignmentVector + maintainanceVector + turningVector);
-	vec3 newPosition = myBoidPos + (newDirection * boidSpeedPerSecond * deltaTime);
-
-	boidDatOut[myIndex].position = vec4(newPosition,0.0f);
-	boidDatOut[myIndex].direction = vec4(newDirection,0.0f);
-	
+	BoidBehaviour(myIndex);
 }

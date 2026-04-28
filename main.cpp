@@ -93,11 +93,11 @@ int main() {
 	GLuint boidBuffer;
 	//the order here is actually very important
 	glInitialise(title,&window);
-	std::shared_ptr<GeometryLoader> loader(new GeometryLoader());
+	std::shared_ptr<GeometryLoader> mainLoader(new GeometryLoader());
 	std::shared_ptr<EntityManager> entityManager(new EntityManager());
-	Renderer renderer(WIDTH, HEIGHT, loader);
+	Renderer renderer(WIDTH, HEIGHT, mainLoader);
 	entityManager->createSceneEntities(&boidBuffer);
-	entityManager->preInitialiseScene(&renderer,loader);
+	entityManager->preInitialiseScene(&renderer,mainLoader);
 	renderer.initialise(entityManager);
 	entityManager->startScene(&renderer);
 
