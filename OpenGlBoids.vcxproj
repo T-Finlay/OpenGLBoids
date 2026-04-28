@@ -122,43 +122,43 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Behaviour.cpp" />
-    <ClCompile Include="BoidsDrawer.cpp" />
-    <ClCompile Include="BoidsManager.cpp" />
-    <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="ComputeShader.cpp" />
-    <ClCompile Include="Controller.cpp" />
-    <ClCompile Include="DefaultDraw.cpp" />
-    <ClCompile Include="DrawRoutine.cpp" />
-    <ClCompile Include="Entity.cpp" />
-    <ClCompile Include="EntityManager.cpp" />
-    <ClCompile Include="GeometryLoader.cpp" />
+    <ClCompile Include="src\Behaviour.cpp" />
+    <ClCompile Include="src\BoidsDrawer.cpp" />
+    <ClCompile Include="src\BoidsManager.cpp" />
+    <ClCompile Include="src\Camera.cpp" />
+    <ClCompile Include="src\ComputeShader.cpp" />
+    <ClCompile Include="src\Controller.cpp" />
+    <ClCompile Include="src\DefaultDraw.cpp" />
+    <ClCompile Include="src\DrawRoutine.cpp" />
+    <ClCompile Include="src\Entity.cpp" />
+    <ClCompile Include="src\EntityManager.cpp" />
+    <ClCompile Include="src\GeometryLoader.cpp" />
     <ClCompile Include="Includes\GL\gl3w.c" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="Renderer.cpp" />
-    <ClCompile Include="Shader.cpp" />
-    <ClCompile Include="TestBehaviour.cpp" />
-    <ClCompile Include="Texture.cpp" />
-    <ClCompile Include="TextureFactory.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\Renderer.cpp" />
+    <ClCompile Include="src\Shader.cpp" />
+    <ClCompile Include="src\TestBehaviour.cpp" />
+    <ClCompile Include="src\Texture.cpp" />
+    <ClCompile Include="src\TextureFactory.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Behaviour.h" />
-    <ClInclude Include="BoidsDrawer.h" />
-    <ClInclude Include="BoidsManager.h" />
-    <ClInclude Include="Camera.h" />
-    <ClInclude Include="ComputeShader.h" />
-    <ClInclude Include="Controller.h" />
-    <ClInclude Include="DefaultDraw.h" />
-    <ClInclude Include="DrawRoutine.h" />
-    <ClInclude Include="Entity.h" />
-    <ClInclude Include="EntityManager.h" />
-    <ClInclude Include="GeometryLoader.h" />
+    <ClInclude Include="Includes\Behaviour.h" />
+    <ClInclude Include="Includes\BoidsDrawer.h" />
+    <ClInclude Include="Includes\BoidsManager.h" />
+    <ClInclude Include="Includes\Camera.h" />
+    <ClInclude Include="Includes\ComputeShader.h" />
+    <ClInclude Include="Includes\Controller.h" />
+    <ClInclude Include="Includes\DefaultDraw.h" />
+    <ClInclude Include="Includes\DrawRoutine.h" />
+    <ClInclude Include="Includes\Entity.h" />
+    <ClInclude Include="Includes\EntityManager.h" />
+    <ClInclude Include="Includes\GeometryLoader.h" />
     <ClInclude Include="Includes\stb_image.h" />
-    <ClInclude Include="Renderer.h" />
-    <ClInclude Include="Shader.h" />
-    <ClInclude Include="TestBehaviour.h" />
-    <ClInclude Include="Texture.h" />
-    <ClInclude Include="TextureFactory.h" />
+    <ClInclude Include="Includes\Renderer.h" />
+    <ClInclude Include="Includes\Shader.h" />
+    <ClInclude Include="Includes\TestBehaviour.h" />
+    <ClInclude Include="Includes\Texture.h" />
+    <ClInclude Include="Includes\TextureFactory.h" />
     <ClInclude Include="Includes\tiny_obj_loader.h" />
   </ItemGroup>
   <ItemGroup>

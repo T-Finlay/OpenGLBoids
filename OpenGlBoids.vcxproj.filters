@@ -15,114 +15,114 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Includes\GL\gl3w.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer.cpp">
+    <ClCompile Include="src\Renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Texture.cpp">
+    <ClCompile Include="src\Texture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Controller.cpp">
+    <ClCompile Include="src\Controller.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Camera.cpp">
+    <ClCompile Include="src\Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Entity.cpp">
+    <ClCompile Include="src\Entity.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Shader.cpp">
+    <ClCompile Include="src\Shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TextureFactory.cpp">
+    <ClCompile Include="src\TextureFactory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="EntityManager.cpp">
+    <ClCompile Include="src\EntityManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GeometryLoader.cpp">
+    <ClCompile Include="src\GeometryLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DefaultDraw.cpp">
+    <ClCompile Include="src\DefaultDraw.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DrawRoutine.cpp">
+    <ClCompile Include="src\DrawRoutine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Behaviour.cpp">
+    <ClCompile Include="src\Behaviour.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TestBehaviour.cpp">
+    <ClCompile Include="src\TestBehaviour.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="BoidsManager.cpp">
+    <ClCompile Include="src\BoidsManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ComputeShader.cpp">
+    <ClCompile Include="src\ComputeShader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="BoidsDrawer.cpp">
+    <ClCompile Include="src\BoidsDrawer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Renderer.h">
+    <ClInclude Include="Includes\Renderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Includes\stb_image.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Texture.h">
+    <ClInclude Include="Includes\Texture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Controller.h">
+    <ClInclude Include="Includes\Controller.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Camera.h">
+    <ClInclude Include="Includes\Camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Entity.h">
+    <ClInclude Include="Includes\Entity.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Shader.h">
+    <ClInclude Include="Includes\Shader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TextureFactory.h">
+    <ClInclude Include="Includes\TextureFactory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="EntityManager.h">
+    <ClInclude Include="Includes\EntityManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GeometryLoader.h">
+    <ClInclude Include="Includes\GeometryLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Includes\tiny_obj_loader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DrawRoutine.h">
+    <ClInclude Include="Includes\DrawRoutine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DefaultDraw.h">
+    <ClInclude Include="Includes\DefaultDraw.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Behaviour.h">
+    <ClInclude Include="Includes\Behaviour.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TestBehaviour.h">
+    <ClInclude Include="Includes\TestBehaviour.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BoidsManager.h">
+    <ClInclude Include="Includes\BoidsManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ComputeShader.h">
+    <ClInclude Include="Includes\ComputeShader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BoidsDrawer.h">
+    <ClInclude Include="Includes\BoidsDrawer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
