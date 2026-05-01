@@ -3,7 +3,7 @@
 
 //#define DEBUG_BOID_BUFFER_INITIALISATION
 // 
-// used only for debug, will heavily affect performance 
+// used only for debug, will affect performance 
 //#define DEBUG_BOID_BUFFER_PRE_POST_COMPUTE_SHADER
 
 BoidsManager::BoidsManager(GLuint* ptr) {

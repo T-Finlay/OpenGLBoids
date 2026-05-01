@@ -158,5 +158,5 @@ void Camera::updateViewAndProjectionMatricies() {
 	viewMatrix = glm::mat4(1.f);
 	viewMatrix = glm::lookAt(position, position + forward,up);
 	projectionMatrix = glm::mat4(1.f);
-	projectionMatrix = glm::perspective(glm::radians(45.f), (float)windowWidth / (float)windowHeight, .01f, 500.f);
+	projectionMatrix = glm::perspective(glm::radians(45.f), (float)windowWidth / (float)windowHeight, .01f, 1000.f);
 }

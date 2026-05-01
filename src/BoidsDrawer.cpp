@@ -5,6 +5,7 @@
 #include "glm/glm.hpp"
 #include "Shader.h"
 #include <GLM/gtc/type_ptr.hpp>
+#include "Renderer.h"
 //#define DEBUG_SHADER_STORAGE_CONTENT
 
 BoidsDrawer::BoidsDrawer(GLuint* ptr) {
@@ -28,6 +29,9 @@ void BoidsDrawer::draw(std::shared_ptr<Entity> self,
 	glBindVertexArray(boidVAO);
 	glm::mat4 scale = glm::mat4(1.f);
 	scale = glm::scale(scale, glm::vec3(0.5f, 0.5f, 0.5f));
+	glm::vec3 lightDirection = renderer->getLightDirection();
+	glUniform3f(boidShader->uniformLocation("lightDirection"), lightDirection.x,lightDirection.y,lightDirection.z);
+	glUniform3f(boidShader->uniformLocation("camPos"),cam->position.x,cam->position.y,cam->position.z);
 	glUniformMatrix4fv(boidShader->uniformLocation("scale"), 1, GL_FALSE, glm::value_ptr(scale));
 	glUniformMatrix4fv(boidShader->uniformLocation("view"), 1, GL_FALSE, glm::value_ptr(cam->viewMatrix));
 	glUniformMatrix4fv(boidShader->uniformLocation("projection"), 1, GL_FALSE, glm::value_ptr(cam->projectionMatrix));

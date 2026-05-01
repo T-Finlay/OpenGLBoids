@@ -12,65 +12,6 @@
 const int WIDTH = 1280;
 const int HEIGHT = 720;
 
-//x,y,z,u,v
-float cubeOld [] =
-{
-	//back face
-	-1.f,-1.f,-1.f,1.f,0.f, 
-	1.f,-1.f,-1.f,0.f,0.f,
-	-1.f,1.f,-1.f,1.f,1.f,
-
-	-1.f,1.f,-1.f,1.f,1.f,
-	1.f,-1.f,-1.f,0.f,0.f,
-	1.f,1.f,-1.f,0.f,1.f,
-	
-	//left face
-	-1.f,-1.f,-1.f,0.f,0.f,
-	-1.f,-1.f,1.f,1.f,0.f,
-	-1.f,1.f,1.f,1.f,1.f,
-
-	-1.f,-1.f,-1.f,0.f,0.f,
-	-1.f,1.f,1.f,1.f,1.f,
-	-1.f,1.f,-1.f,0.f,1.f,
-
-	//right face
-	1.f,-1.f,-1.f,1.f,0.f,
-	1.f,-1.f,1.f,0.f,0.f,
-	1.f,1.f,1.f,0.f,1.f,
-
-	1.f,-1.f,-1.f,1.f,0.f,
-	1.f,1.f,1.f,0.f,1.f,
-	1.f,1.f,-1.f,1.f,1.f,
-
-	//front face
-	-1.f,-1.f,1.f,0.f,0.f,
-	1.f,-1.f,1.f,1.f,0.f,
-	-1.f,1.f,1.f,0.f,1.f,
-
-	-1.f,1.f,1.f,0.f,1.f,
-	1.f,-1.f,1.f,1.f,0.f,
-	1.f,1.f,1.f,1.f,1.f,
-
-	//top face
-	-1.f,1.f,1.f,0.f,0.f,
-	1.f,1.f,1.f,1.f,0.f,
-	1.f,1.f,-1.f,1.f,1.f,
-
-	-1.f,1.f,1.f,0.f,0.f,
-	1.f,1.f,-1.f,1.f,1.f,
-	-1.f,1.f,-1.f,0.f,1.f,
-
-	//bottom face
-	-1.f,-1.f,1.f,0.f,1.f,
-	1.f,-1.f,1.f,1.f,1.f,
-	1.f,-1.f,-1.f,1.f,0.f,
-
-	-1.f,-1.f,1.f,0.f,1.f,
-	1.f,-1.f,-1.f,1.f,0.f,
-	-1.f,-1.f,-1.f,0.f,0.f
-};
-
-
 void glInitialise(std::string title,GLFWwindow** window) {
 	glfwInit();
 	glfwWindowHint(GLFW_SAMPLES, 4);

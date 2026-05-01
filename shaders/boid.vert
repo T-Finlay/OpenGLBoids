@@ -2,7 +2,7 @@
 
 layout (location = 0) in vec4 vaPos;
 layout (location = 1) in vec2 tex_coords;
-//layout (location = 2) in vec3 vtxNor;
+layout (location = 2) in vec3 vtxNor;
 
 
 struct boidData {
@@ -15,12 +15,13 @@ layout (binding = 0,std430) readonly buffer boidsData {
 };
 
 out vec2 uv;
+out vec3 nor;
+out vec3 fragPosWorldSpace;
 
 uniform mat4 view;
 uniform mat4 projection;
 uniform mat4 scale;
 
-//i really hope this maths is correct
 mat4 modelMatrix() {
 	mat4 translationMatrix = mat4(0.0f);
 	mat4 rotationMatrixPitch = mat4(0.0f);
@@ -60,8 +61,11 @@ mat4 modelMatrix() {
 }
 
 void main() {
-	gl_Position = projection * view * (modelMatrix() * scale) * vaPos;
+	mat4 model = modelMatrix() * scale;
+	gl_Position = projection * view * model * vaPos;
 	uv = tex_coords;
+	fragPosWorldSpace = (model * vaPos).xyz;
+	nor = mat3(transpose(inverse(model))) * vtxNor;
 }
 
 

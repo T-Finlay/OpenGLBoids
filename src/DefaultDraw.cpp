@@ -32,7 +32,9 @@ void DefaultDraw::draw(std::shared_ptr<Entity> self, std::shared_ptr<Camera> cam
 
 	shader->useShader();
 	r->bindMainVAO();
-
+	glm::vec3 lightDirection = r->getLightDirection();
+	glUniform3f(shader->uniformLocation("lightDirection"), lightDirection.x, lightDirection.y, lightDirection.z);
+	glUniform3f(shader->uniformLocation("camPos"), cam->position.x, cam->position.y, cam->position.z);
 	glm::mat4 modelMatrix = generateModelMatrix(self.get());
 	glUniformMatrix4fv(shader->uniformLocation("model"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
 	glUniformMatrix4fv(shader->uniformLocation("view"), 1, GL_FALSE, glm::value_ptr(cam->viewMatrix));

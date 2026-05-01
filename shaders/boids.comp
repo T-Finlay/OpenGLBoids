@@ -128,7 +128,6 @@ void BoidBehaviour(uint myIndex) {
 	desiredDirection = desiredDirection / (alignmentBias + separationBias + coheasionBias + homingBias);
 	
 	desiredDirection = normalize(desiredDirection);
-	//vec3 desiredDirection = vec3(1.0f,0.0f,0.0f);
 
 	float theta = maxTurningRateRadiansPerSecond * deltaTime; //theta is the amount we should rotate by
 	float angularDifference = acos(dot(myBoidDir,desiredDirection));

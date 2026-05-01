@@ -8,6 +8,7 @@
 #include "Entity.h"
 #include "EntityManager.h"
 #include "GeometryLoader.h"
+#include "skybox.h"
 #include "EntityManager.h"
 #include <memory>
 class Renderer
@@ -22,6 +23,7 @@ public:
 	void compileShaders();
 	std::shared_ptr<Shader> getMainShader();
 	GLuint getMainVao();
+	glm::vec3 getLightDirection();
 	ModelRenderData getModelData(std::string model);
 	void bindMainVAO();
 
@@ -31,10 +33,11 @@ private:
 	GLuint mainEBO;
 	GLuint linesVAO;
 	GLuint linesBuffer;
+	glm::vec3 lightDirection;
 	std::shared_ptr<Shader> mainShader;
 	std::shared_ptr<Shader> linesShader;
 	std::shared_ptr<Camera> cam;
-	std::unique_ptr<Entity> testCube;
+	std::unique_ptr<Skybox> skybox;
 	std::shared_ptr<GeometryLoader> loader;
 	void createBuffers();
 	void drawAxisLines();

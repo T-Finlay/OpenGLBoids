@@ -40,18 +40,21 @@ void Renderer::initialise(std::shared_ptr<EntityManager> entityManager) {
 	glEnable(GL_DEPTH_TEST);
 	
 	cam.reset(new Camera(glm::vec3(0.f, 0.f, 10.f), glm::vec3(0.f, 0.f, -1.f), glm::vec3(0.f, 1.f, 0.f), glm::vec3(0.f, 0.f, 0.f),width,height));
+	skybox.reset(new Skybox());
 }
 
 void Renderer::drawFrame(float deltaTimeMs, std::shared_ptr<EntityManager> entityManager) {
-	glDepthFunc(GL_LESS);
 	cam->update(deltaTimeMs);
-
 	glViewport(0, 0, width, height);
 	static const GLfloat bgd[] = { .8f, .8f, .8f, 1.f };
 	glClearBufferfv(GL_COLOR, 0, bgd);
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
+	glDepthFunc(GL_LEQUAL);
+	skybox->draw(cam);
+
+	glDepthFunc(GL_LESS);
 	drawAllEntities(entityManager);
 	linesShader->useShader();
 	drawAxisLines();
@@ -61,6 +64,7 @@ Renderer::Renderer(int w, int h, std::shared_ptr<GeometryLoader> l) {
 	width = w;
 	height = h;
 	loader = l;
+	lightDirection = glm::vec3(1.f,-1.f,1.f);
 }
 
 void Renderer::DebugCallBack(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
@@ -82,6 +86,10 @@ std::shared_ptr<Shader> Renderer::getMainShader()
 
 GLuint Renderer::getMainVao() {
 	return mainVAO;
+}
+
+glm::vec3 Renderer::getLightDirection() {
+	return lightDirection;
 }
 
 ModelRenderData Renderer::getModelData(std::string model) {
